@@ -56,6 +56,10 @@ class Stacked_Blocks{
             write();
         }
 
+        void remove_block(const unsigned int index){
+            blocks.erase(blocks.begin() + index);
+        }
+
         void write(){
             for (unsigned int i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -73,8 +77,42 @@ class Stacked_Blocks{
             return false;
         }
 
+        int clear_lines(){
+            unsigned int row;
+            vector<Block> in_row;
+            for (row = 0; row < height; row++){
+                for (unsigned int i = 0; i < blocks.size(); i++){
+                    if (blocks.at(i).row == row)
+                        in_row.push_back(blocks.at(i));
+                }
+                if (in_row.size() == width)
+                    clear_row(row);
+                in_row.clear();
+            }
+            write();
+            return 0;
+        }
+
     private:
         vector<Block> blocks;
+        
+        void clear_row(const unsigned int row){
+            unsigned int i = 0;
+            while (i < blocks.size()){
+                Block block = blocks.at(i);
+                if (block.row == row){
+                    remove_block(i);
+                    game.write(block.row, block.col, bg);
+                } else if (block.row < row) {
+                    game.write(block.row, block.col, bg);
+                    blocks.at(i).set_row_relative(1);
+                    i++;
+                } else {
+                    i++;
+                }
+            }
+            write();
+        }
 };
 
 class Tetrimino{
@@ -83,15 +121,77 @@ class Tetrimino{
         Tetrimino(const char type){
             switch (type){
                 case 't':
-                    Pixel t_face = Pixel('t', PURPLE, PURPLE);
-                    blocks.push_back(Block(0, width/2-1, t_face));
-                    blocks.push_back(Block(1, width/2-2, t_face));
-                    blocks.push_back(Block(1, width/2-1, t_face));
-                    blocks.push_back(Block(1, width/2, t_face));
-                    break;
+                    {
+                        Pixel t_face = Pixel('t', PURPLE, PURPLE);
+                        blocks.push_back(Block(0, width/2-1, t_face));
+                        blocks.push_back(Block(1, width/2-2, t_face));
+                        blocks.push_back(Block(1, width/2-1, t_face));
+                        blocks.push_back(Block(1, width/2, t_face));
+                        break;
+                    }
+
+                case 'o':
+                    {
+                        Pixel o_face = Pixel('o', YELLOW, YELLOW);
+                        blocks.push_back(Block(0, width/2-1, o_face));
+                        blocks.push_back(Block(0, width/2, o_face));
+                        blocks.push_back(Block(1, width/2-1, o_face));
+                        blocks.push_back(Block(1, width/2, o_face));
+                        break;
+                    }
+
+                case 'i':
+                    {
+                        Pixel i_face = Pixel('i', CYAN, CYAN);
+                        for (int i = -2; i < 2; i++){
+                            blocks.push_back(Block(1, width/2+i, i_face));
+                        }
+                        break;
+                    }
+
+                case 's':
+                    {
+                        Pixel s_face = Pixel('s', LIGHT_GREEN, LIGHT_GREEN);
+                        blocks.push_back(Block(0, width/2-1, s_face));
+                        blocks.push_back(Block(0, width/2, s_face));
+                        blocks.push_back(Block(1, width/2-2, s_face));
+                        blocks.push_back(Block(1, width/2-1, s_face));
+                        break;
+                    }
+
+                case 'z':
+                    {
+                        Pixel z_face = Pixel('z', LIGHT_RED, LIGHT_RED);
+                        blocks.push_back(Block(1, width/2-1, z_face));
+                        blocks.push_back(Block(1, width/2, z_face));
+                        blocks.push_back(Block(0, width/2-2, z_face));
+                        blocks.push_back(Block(0, width/2-1, z_face));
+                        break;
+                    }
+
+                case 'l':
+                    {
+                        Pixel l_face = Pixel('L', GRAY, GRAY);
+                        blocks.push_back(Block(0, width/2, l_face));
+                        for (int i = -2; i < 1; i++){
+                            blocks.push_back(Block(1, width/2+i, l_face));
+                        }
+                        break;
+                    }
+
+                case 'j':
+                    {
+                        Pixel j_face = Pixel('j', BLUE, BLUE);
+                        blocks.push_back(Block(0, width/2-2, j_face));
+                        for (int i = -2; i < 1; i++){
+                            blocks.push_back(Block(1, width/2+i, j_face));
+                        }
+                        break;
+                    }
             }
-            write();
         }
+
+        Tetrimino(){};
 
         bool move_horizontal(bool left, Stacked_Blocks stack){
             unsigned int i;
@@ -144,7 +244,6 @@ class Tetrimino{
             return false;
         }
         
-    private:
         void write(bool erase = false){
             for (unsigned int i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -154,17 +253,67 @@ class Tetrimino{
                     game.write(block.row, block.col, block.face);
             }
         }
+};
 
+struct Bag{
+    vector<bool> used_pieces;
+    vector<Tetrimino> pieces;
+    
+    Bag(){
+        for (int i = 0; i < 7; i++)
+            used_pieces.push_back(false);
+        pieces.push_back(Tetrimino('t'));
+        pieces.push_back(Tetrimino('o'));
+        pieces.push_back(Tetrimino('i'));
+        pieces.push_back(Tetrimino('s'));
+        pieces.push_back(Tetrimino('z'));
+        pieces.push_back(Tetrimino('l'));
+        pieces.push_back(Tetrimino('j'));
+    }
 
+    Tetrimino get_piece(){
+        //check if all pieces have been used in this bag
+        bool all_used = true;
+        for (int i = 0; i < 6; i++){
+            if (used_pieces.at(i) == false){
+                all_used = false;
+                break;
+            }   
+        }
+
+        //if they have been all used
+        if (all_used){
+            //reset used pieces
+            used_pieces.clear();
+            for (int i = 0; i < 7; i++)
+                used_pieces.push_back(false);
+        }
+
+        unsigned int piece_index;
+        do { 
+            //get a random number from 0-6
+            piece_index = rand_int(6);
+        //keep looping until you find an unused piece
+        } while (used_pieces.at(piece_index) == true);
+        
+        used_pieces.at(piece_index) = true;
+        //return the piece we got
+        return pieces.at(piece_index);
+    }
 };
 
 int main(){
     clear_screen();
     show_cursor(false);
+    //get a random seed
+    srand(time(NULL));
+
     Stacked_Blocks stack;
+    Bag bag;
 
     char key = -1;
-    Tetrimino piece = Tetrimino('t');
+    Tetrimino piece = bag.get_piece();
+    piece.write();
 
     unsigned int clock = 0;
     bool hit_bottom = false;
@@ -192,7 +341,8 @@ int main(){
         if (hit_bottom){
             hit_bottom = false;
             stack.add_blocks(piece.blocks);
-            piece = Tetrimino('t');
+            piece = bag.get_piece();
+            stack.clear_lines();
         }
 
         cin.clear();
