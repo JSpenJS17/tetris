@@ -2,6 +2,8 @@
 #include "engine.hpp"
 #include <limits>
 #include <time.h>
+#include <cmath>
+
 using namespace std;
 
 const unsigned int ENTER = 13, ESC = 27, SPACE = 32,
@@ -264,7 +266,8 @@ class Tetromino{
             return false;
         }
 
-        bool move_down(const Stacked_Blocks& stack, const int amount = 1){
+        bool move_down(const Stacked_Blocks& stack, const int amount = 1,
+                const bool test = false){
             unsigned int i;
             for (i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -278,11 +281,13 @@ class Tetromino{
                     return true;
             }
 
-            write(true);
-            for (i = 0; i < blocks.size(); i++){
-                blocks.at(i).set_row_relative(amount);
+            if (!test){
+                write(true);
+                for (i = 0; i < blocks.size(); i++){
+                    blocks.at(i).set_row_relative(amount);
+                }
+                write();
             }
-            write();
 
             return false;
         }
@@ -568,7 +573,110 @@ struct Bag{
 };
 
 unsigned int main_menu(){
-    return 1;
+    unsigned int level_selected = 1;
+    char key = -1;
+    char buffer[3];
+    color(BLACK, BLACK);
+    cout << ".          ";
+    
+    const int title_bg = WHITE;
+
+    color(title_bg, LIGHT_RED);
+    cout << "T ";
+    color(title_bg, YELLOW);
+    cout << "E ";
+    color(title_bg, LIGHT_GREEN);
+    cout << "T ";
+    color(title_bg, CYAN);
+    cout << "R ";
+    color(title_bg, BLUE);
+    cout << "I ";
+    color(title_bg, PURPLE);
+    cout << "S";
+
+    color(BLACK, BLACK);
+    cout << "           " << endl << endl;
+
+    color(GRAY, WHITE);
+    cout << "Controls:" << endl;
+    cout << "    Left/Right to move" << endl;
+    cout << "    Down to soft drop" << endl;
+    cout << "    Space to hard drop" << endl;
+    cout << "    Up to rotate clockwise" << endl;
+    cout << "    Z to rotate counter clockwise" << endl << endl;
+
+    cout << "Level: " << endl;
+    color(GRAY, LIGHT_RED);
+
+    while (key != ENTER){
+        set_cursor_pos(9, 7);
+        sprintf(buffer, "%2d", level_selected);
+        cout << buffer;
+        key = wait_for_kb_input();
+
+        switch (key){
+            case UP:
+                if (level_selected < 20)
+                    level_selected++;
+                break;
+
+            case DOWN:
+                if (level_selected > 1)
+                    level_selected--;
+                break;
+
+            case RIGHT:
+                for (int i = 0; i < 5; i++)
+                    if (level_selected < 20)
+                        level_selected++;
+                break;
+
+            case LEFT:
+                for (int i = 0; i < 5; i++)
+                    if (level_selected > 1)
+                        level_selected--;
+                break;
+        }
+    }
+
+    color(16, 16);
+
+    return level_selected;
+}
+
+unsigned int calculate_score(const unsigned int lines_cleared,
+                             const Tetromino& piece, 
+                             const Stacked_Blocks& stack, 
+                             const unsigned int level, const bool b2b){
+    unsigned int score = 0;
+
+    switch (lines_cleared){
+        case 0:
+            score = 0;
+            break;
+
+        case 1:
+            score = 100 * level;
+            break;
+
+        case 2:
+            score = 300 * level;
+            break;
+
+        case 3:
+            score = 500 * level;
+            break;
+
+        case 4:
+            score = 800 * level;
+            break;
+    }
+
+    if (b2b){
+        score *= 1.5;
+    }
+
+    return score;
 }
 
 int main(){
@@ -577,13 +685,16 @@ int main(){
     //get a random seed
     srand(time(NULL));
 
-    int level = main_menu();
+    const int level_selected = main_menu();
+    clear_screen();
+    int level = level_selected;
 
     Stacked_Blocks stack;
     Bag bag;
 
     char key = -1;
     Tetromino piece = bag.get_piece();
+    piece.move_down(stack);
     piece.write();
 
     set_cursor_pos(0, width*2+1);
@@ -602,25 +713,32 @@ int main(){
     clock_t frame_end_time;
 
     bool hit_bottom = false;
-    bool game_over = false;
+    bool failed_move;
     bool reset_piece = false;
     bool has_held = false;
-    bool failed_move;
+    bool hard_dropping = false;
+    bool game_over = false;
     unsigned int frame_counter = 0;
+    unsigned int current_lines_cleared = 0;
     unsigned int line_total = 0;
     unsigned int reset_count = 0;
     int lock_delay = 500;
     unsigned long score = 0;
     float gravity = (float) 1/60;
+    char buffer[10];
     
     while (!game_over){
         key = get_kb_input();
 
         frame_start_time = clock();
         
+        //gravity calculation
+        gravity = (1.0/60.0) * (1.0/pow(.8-(((float) level-1)*.007), level-1));
+
         switch (key){
             case LEFT:
                 failed_move = piece.move_horizontal(true, stack);
+                hit_bottom = piece.move_down(stack, 1, true);
                 if (hit_bottom && !failed_move){
                     lock_delay = 500;
                     reset_count++;
@@ -629,6 +747,7 @@ int main(){
 
             case RIGHT:
                 failed_move = piece.move_horizontal(false, stack);
+                hit_bottom = piece.move_down(stack, 1, true);
                 if (hit_bottom && !failed_move){
                     lock_delay = 500;
                     reset_count++;
@@ -642,8 +761,9 @@ int main(){
                 break;
 
             case UP:
-                piece.rotate(true, stack);
-                if (hit_bottom){
+                failed_move = piece.rotate(true, stack);
+                hit_bottom = piece.move_down(stack, 1, true);
+                if (!failed_move && hit_bottom){
                     lock_delay = 500;
                     reset_count++;
                 }
@@ -656,7 +776,8 @@ int main(){
 
             case 'z':
                 failed_move = piece.rotate(false, stack);
-                if (hit_bottom && !failed_move){
+                hit_bottom = piece.move_down(stack, 1, true);
+                if (!failed_move && hit_bottom){
                     lock_delay = 500;
                     reset_count++;
                 }
@@ -717,6 +838,7 @@ int main(){
 
             case SPACE:
                 gravity = 20;
+                hard_dropping = true;
                 break;
                 
         }
@@ -726,19 +848,21 @@ int main(){
         frame_counter += 1;
         if (frame_counter * gravity >= 1){
             int moves = frame_counter * gravity;
-            for (int i = 0; i < moves; i++)
+            for (int i = 0; i < moves; i++){
                 hit_bottom = piece.move_down(stack);
+                if (hard_dropping)
+                    score += 2;
+                if (hit_bottom)
+                    break;
+            }
+            if (hard_dropping)
+                hard_dropping = false;
             frame_counter = 0;
         }
-
-        //reset gravity
-        gravity = ((float) 1) / ((int) (-2.95 * level) + 60);
 
         /* A BLOCK LANDED BUT ISN'T PLACED YET */
 
         if (hit_bottom){
-            if (key == DOWN && lock_delay >= 200)
-                lock_delay = 200;
             if (key == SPACE)
                 lock_delay = 0;
             lock_delay -= 16;
@@ -748,14 +872,18 @@ int main(){
 
         //if the piece has hit the bottom and the player is out of lock delay
         //or they've reset the lock delay 15 times
-        if (hit_bottom && (lock_delay <= 0 || reset_count >= 15)){
+        if (lock_delay <= 0 || reset_count >= 15){
             //reset the parts of the piece
             reset_piece = true;
             //add the current piece to the stack of blocks
             stack.add_blocks(piece.blocks);
-            line_total += stack.clear_lines();
+            //clear lines and store how many were cleared
+            current_lines_cleared = stack.clear_lines();
+            score +=calculate_score(current_lines_cleared, piece,
+                                    stack, level, false);
+            line_total += current_lines_cleared;
             if (level < 20)
-                level = line_total/10 + 1;
+                level = line_total/10 + level_selected;
             //change current piece to the previous next one
             piece = next_piece;
             piece.write();
@@ -784,7 +912,7 @@ int main(){
         //or because they just placed their block
         if (reset_piece){            
             //reset tracker variables
-            hit_bottom = false;
+            hit_bottom = piece.move_down(stack);
             lock_delay = 500;
             reset_count = 0;
             reset_piece = false;
@@ -803,9 +931,14 @@ int main(){
         set_cursor_pos(height+1, 0);
 
         color(GRAY, WHITE);
-        cout << "Level: " << level << endl << endl;
-        cout << "Lines: " << line_total << endl << endl;
-        cout << "Score: " << score;
+        sprintf(buffer, "%7d", level);
+        cout << "Level: " << buffer << endl;
+
+        sprintf(buffer, "%7d", line_total);
+        cout << "Lines: " << buffer << endl;
+        
+        sprintf(buffer, "%7d", score);
+        cout << "Score: " << buffer;
         
         color(16, 16);
 
@@ -813,13 +946,24 @@ int main(){
         delay(16-(frame_end_time-frame_start_time));    
     }
 
+    /* PRINT GAME OVER SCREEN */
     clear_screen();
     color(GRAY, LIGHT_RED);
     cout << "Game Over" << endl;
 
     color(GRAY, WHITE);
-    cout << "Lines Cleared: " << line_total << endl;
+    sprintf(buffer, "%7d", level_selected);
+    cout << "Starting Level: " << buffer << endl;
     
+    sprintf(buffer, "%7d", level);
+    cout << "Final Level:    " << buffer << endl;
+
+    sprintf(buffer, "%7d", line_total);
+    cout << "Lines Cleared:  " << buffer << endl;
+
+    sprintf(buffer, "%7d", score);
+    cout << "Score:          " << buffer << endl << endl;
+
     color(16, 16);
     cout << "Press enter to quit.";
 
