@@ -144,7 +144,7 @@ bool operator == (Pixel& me, Pixel& other) {
            me.val == other.val;
 }
 
-bool operator != (Pixel& me, Pixel& other) {
+bool operator != (Pixel& me, Pixel& other){
     return !(me.bgc == other.bgc &&
            me.fgc == other.fgc &&
            me.val == other.val);
@@ -237,5 +237,9 @@ void Board::print_in_bounds(Pixel pix, unsigned const int col){
 void Board::print_pixel(Pixel pix){
     color(pix.bgc, pix.fgc);
     cout << pix.val << " ";
+}
+
+Pixel Board::get_pix_at(unsigned const int row, unsigned const int col){
+    return board.at(row).at(col);
 }
 

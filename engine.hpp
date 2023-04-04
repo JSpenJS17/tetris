@@ -79,6 +79,8 @@ class Board{
  
         void clear_board(const bool redraw_whole_board);
 
+        Pixel get_pix_at(unsigned const int row, unsigned const int col);
+
     private:
         Pixel filler;
         unsigned int len;
