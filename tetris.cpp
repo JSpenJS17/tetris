@@ -699,13 +699,14 @@ unsigned int main_menu(){
     cout << "    Down to soft drop" << endl;
     cout << "    Space to hard drop" << endl;
     cout << "    Up to rotate clockwise" << endl;
-    cout << "    Z to rotate counter clockwise" << endl << endl;
+    cout << "    Z to rotate counter clockwise" << endl;
+    cout << "    C to hold a piece" << endl << endl;
 
     cout << "Level: " << endl;
+    cout << endl << "Press enter to start!";
     color(WHITE, RED);
-
     while (key != ENTER){
-        set_cursor_pos(9, 7);
+        set_cursor_pos(10, 7);
         sprintf(buffer, "%2d", level_selected);
         cout << buffer;
         key = wait_for_kb_input();
