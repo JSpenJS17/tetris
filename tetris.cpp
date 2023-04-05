@@ -11,6 +11,7 @@ const unsigned int ENTER = 13, ESC = 27, SPACE = 32,
 
 const unsigned int width = 10;
 const unsigned int height = 20;
+const unsigned int lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
 
@@ -268,8 +269,8 @@ class Tetromino{
 
                 //if that fake move put us out of bounds or on a stacked block
                 if (stack.is_on(block) || block.is_out_of_bounds())
-                    //break out
-                    return true;
+                    //the move failed
+                    return false;
             }
 
             write(true);
@@ -280,7 +281,8 @@ class Tetromino{
                     blocks.at(i).set_col_relative(1);
             }
             write();
-            return false;
+            //the move succeeded
+            return true;
         }
 
         bool move_down(const Stacked_Blocks& stack, const int amount = 1,
@@ -691,7 +693,7 @@ unsigned int main_menu(){
     color(BLACK, BLACK);
     cout << "           " << endl << endl;
 
-    color(GRAY, WHITE);
+    color(WHITE, BLACK);
     cout << "Controls:" << endl;
     cout << "    Left/Right to move" << endl;
     cout << "    Down to soft drop" << endl;
@@ -700,7 +702,7 @@ unsigned int main_menu(){
     cout << "    Z to rotate counter clockwise" << endl << endl;
 
     cout << "Level: " << endl;
-    color(GRAY, LIGHT_RED);
+    color(WHITE, RED);
 
     while (key != ENTER){
         set_cursor_pos(9, 7);
@@ -720,10 +722,16 @@ unsigned int main_menu(){
                 break;
 
             case RIGHT:
-                for (int i = 0; i < 5; i++)
-                    if (level_selected < 20)
-                        level_selected++;
-                break;
+                {
+                    int inc_num = 5;
+                    if (level_selected == 1)
+                        inc_num = 4;
+
+                    for (int i = 0; i < inc_num; i++)
+                        if (level_selected < 20)
+                            level_selected++;
+                    break;
+                }
 
             case LEFT:
                 for (int i = 0; i < 5; i++)
@@ -903,7 +911,7 @@ int main(){
         unsigned int line_total = 0;
         unsigned int reset_count = 0;
         unsigned int t_spin = 0;
-        int lock_delay = 500;
+        int lock_delay = lock_delay_reset;
         unsigned long score = 0;
         float gravity = (float) 1/60;
         char buffer[10];
@@ -923,7 +931,7 @@ int main(){
                     successful_move = piece.move_horizontal(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (hit_bottom && successful_move){
-                        lock_delay = 500;
+                        lock_delay = lock_delay_reset;
                         reset_count++;
                     }
                     break;
@@ -932,7 +940,7 @@ int main(){
                     successful_move = piece.move_horizontal(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (hit_bottom && successful_move){
-                        lock_delay = 500;
+                        lock_delay = lock_delay_reset;
                         reset_count++;
                     }
                     break;
@@ -947,7 +955,7 @@ int main(){
                     successful_move = piece.rotate(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (successful_move && hit_bottom){
-                        lock_delay = 500;
+                        lock_delay = lock_delay_reset;
                         reset_count++;
                     }
                     break;
@@ -961,7 +969,7 @@ int main(){
                     successful_move = piece.rotate(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (successful_move && hit_bottom){
-                        lock_delay = 500;
+                        lock_delay = lock_delay_reset;
                         reset_count++;
                     }
                     break;
@@ -1000,6 +1008,8 @@ int main(){
 
                             //draw it in the next piece spot
                             next_piece.draw_at_pos(3, width+3);
+
+                            has_held = true;
                         }
 
                         //whatever piece is, write it
@@ -1066,7 +1076,6 @@ int main(){
                 t_spin = successful_move;
                 score += calculate_score(current_lines_cleared, piece,
                                         stack, level, prev_clear_ptr, t_spin);
-                t_spin = 0;
                 line_total += current_lines_cleared;
 
                 if (level < 20)
@@ -1100,7 +1109,7 @@ int main(){
             if (reset_piece){            
                 //reset tracker variables
                 hit_bottom = piece.move_down(stack);
-                lock_delay = 500;
+                lock_delay = lock_delay_reset;
                 reset_count = 0;
                 reset_piece = false;
 
@@ -1135,10 +1144,10 @@ int main(){
 
         /* PRINT GAME OVER SCREEN */
         clear_screen();
-        color(GRAY, LIGHT_RED);
+        color(WHITE, RED);
         cout << "Game Over" << endl;
 
-        color(GRAY, WHITE);
+        color(WHITE, BLACK);
         sprintf(buffer, "%7d", level_selected);
         cout << "Starting Level: " << buffer << endl;
         
