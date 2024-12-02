@@ -1,8 +1,10 @@
 
-CFILES = tetris.cpp engine.cpp
+CFILES = src/tetris.cpp src/engine.cpp
 
 all: build
 
 build:
-	g++ tetris.cpp engine.cpp -o tetris.exe
+	g++ $(CFILES) -o tetris.exe
 
+clean:
+	rm tetris.exe
