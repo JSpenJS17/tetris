@@ -1,17 +1,20 @@
 #include <iostream>
-#include "engine.hpp"
 #include <limits>
 #include <time.h>
 #include <cmath>
+#include "engine.hpp"
+
+typedef unsigned int uint;
+typedef unsigned long ulong;
 
 using namespace std;
 
-const unsigned int ENTER = 13, ESC = 27, SPACE = 32,
+const uint ENTER = 13, ESC = 27, SPACE = 32,
                    UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
-const unsigned int width = 10;
-const unsigned int height = 20;
-const unsigned int lock_delay_reset = 750;
+const uint width = 10;
+const uint height = 20;
+const uint lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
 
@@ -57,22 +60,22 @@ class Stacked_Blocks{
             write();
         }
 
-        void remove_block(const unsigned int index){
+        void remove_block(const uint index){
             blocks.erase(blocks.begin() + index);
         }
 
         void write(){
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
                 game.write(block.row, block.col, block.face);
             }
         }
 
-        bool is_on(const unsigned int row, const unsigned int col) const{
+        bool is_on(const uint row, const uint col) const{
             if (row >= height || col >= width)
                 return true;
 
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 Block stack_block = blocks.at(i);
                 if (row == stack_block.row && col == stack_block.col)
                     return true;
@@ -82,7 +85,7 @@ class Stacked_Blocks{
         }
 
         bool is_on(const Block& block) const{
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 Block stack_block = blocks.at(i);
                 if (block.row == stack_block.row &&
                     block.col == stack_block.col)
@@ -91,13 +94,13 @@ class Stacked_Blocks{
             return false;
         }
 
-        unsigned int clear_lines(){
-            unsigned int row;
+        uint clear_lines(){
+            uint row;
             vector<Block> in_row;
-            unsigned int cleared = 0;
+            uint cleared = 0;
 
             for (row = 0; row < height; row++){
-                for (unsigned int i = 0; i < blocks.size(); i++){
+                for (uint i = 0; i < blocks.size(); i++){
                     if (blocks.at(i).row == row)
                         in_row.push_back(blocks.at(i));
                 }
@@ -119,8 +122,8 @@ class Stacked_Blocks{
     private:
         vector<Block> blocks;
         
-        void clear_row(const unsigned int row){
-            unsigned int i = 0;
+        void clear_row(const uint row){
+            uint i = 0;
             while (i < blocks.size()){
                 Block block = blocks.at(i);
                 if (block.row == row){
@@ -257,7 +260,7 @@ class Tetromino{
         };
 
         bool move_horizontal(bool left, const Stacked_Blocks& stack){
-            unsigned int i;
+            uint i;
             for (i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
                 
@@ -287,7 +290,7 @@ class Tetromino{
 
         bool move_down(const Stacked_Blocks& stack, const int amount = 1,
                 const bool test = false){
-            unsigned int i;
+            uint i;
             for (i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
                 
@@ -312,7 +315,7 @@ class Tetromino{
         }
         
         void write(bool erase = false){
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
                 if (erase)
                     game.write(block.row, block.col, bg);
@@ -329,24 +332,24 @@ class Tetromino{
             vector<Block> rotation = blocks;
 
             //define rotation point
-            unsigned int center_x = blocks.at(0).col;
-            unsigned int center_y = blocks.at(0).row;
+            uint center_x = blocks.at(0).col;
+            uint center_y = blocks.at(0).row;
 
             //rotate piece
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 int *col = &rotation.at(i).col;
                 int *row = &rotation.at(i).row;
                 *col -= center_x;
                 *row -= center_y;
 
                 if (clockwise){
-                    unsigned int temp = *row;
+                    uint temp = *row;
                     *row = *col;
                     *col = -temp;
                 }
 
                 else{
-                    unsigned int temp = *row;
+                    uint temp = *row;
                     *row = -*col;
                     *col = temp;
                 }
@@ -402,7 +405,7 @@ class Tetromino{
             // first, find the translations set we're using
             // this depends on angle and must be hardcoded
             
-            unsigned int trans_set;
+            uint trans_set;
             if (clockwise){
                 trans_set = get_trans_set(angle, (angle+1) % 4);
             }
@@ -446,7 +449,7 @@ class Tetromino{
                 //if the rotation was good
                 if (valid_rotation){
                     //move everything back to the valid shamts[trans_set][trans_index]
-                    for (unsigned int i = 0; i < blocks.size(); i++){
+                    for (uint i = 0; i < blocks.size(); i++){
                         Block *block = &rotation.at(i);
                         block->col += shamts[trans_set][trans_index][0];
                         block->row -= shamts[trans_set][trans_index][1];
@@ -479,7 +482,7 @@ class Tetromino{
             write(true);
 
             //assign the rotated coords to the actual piece
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 blocks.at(i) = rotation.at(i);
             }
             
@@ -494,12 +497,12 @@ class Tetromino{
 
         }
 
-        void draw_at_pos(const unsigned int row, const unsigned int col){
+        void draw_at_pos(const uint row, const uint col){
             //center the block at the origin
-            unsigned int center_x = blocks.at(0).col;
-            unsigned int center_y = blocks.at(0).row;
+            uint center_x = blocks.at(0).col;
+            uint center_y = blocks.at(0).row;
 
-            for (unsigned int i = 0; i < blocks.size(); i++){
+            for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
                 block.row -= center_y;
                 block.col -= center_x;
@@ -516,7 +519,7 @@ class Tetromino{
         bool instantiated;
         int angle;
         int shamts[8][5][2];
-        unsigned int get_trans_set(const int from_angle, const int dest_angle){
+        uint get_trans_set(const int from_angle, const int dest_angle){
             switch (from_angle){
                 case 0:
                     if (dest_angle == 1)
@@ -549,7 +552,7 @@ class Tetromino{
             throw invalid_argument("Bad angles given.");
         }      
 
-        unsigned int t_spin_check(int trans_index, const Stacked_Blocks& stack){
+        uint t_spin_check(int trans_index, const Stacked_Blocks& stack){
             //t spin check. refer to the 2009 tetris guideline page 22
             bool a = false;
             bool b = false;
@@ -655,7 +658,7 @@ struct Bag{
                 used_pieces.push_back(false);
         }
 
-        unsigned int piece_index;
+        uint piece_index;
         do { 
             //get a random number from 0-6
             piece_index = rand_int(6);
@@ -668,8 +671,8 @@ struct Bag{
     }
 };
 
-unsigned int main_menu(){
-    unsigned int level_selected = 1;
+uint main_menu(){
+    uint level_selected = 1;
     char key = -1;
     char buffer[3];
     color(BLACK, BLACK);
@@ -757,13 +760,13 @@ void clear_score_output(){
     color(16, 16);
 }
 
-unsigned int calculate_score(const unsigned int lines_cleared,
+uint calculate_score(const uint lines_cleared,
                              const Tetromino& piece, 
                              const Stacked_Blocks& stack, 
-                             const unsigned int level, string* prev_clear,
+                             const uint level, string* prev_clear,
                              const int t_spin_type){
-    unsigned int score = 0;
-    unsigned int row_index = 13;
+    uint score = 0;
+    uint row_index = 13;
     string cur_clear = "break b2b";
     
     clear_score_output();
@@ -866,7 +869,18 @@ unsigned int calculate_score(const unsigned int lines_cleared,
     return score;
 }
 
+void sigint_handler(int dummy) {
+	// should reset color on death
+    color(16, 16);
+    // should also clear screen
+    clear_screen();
+    // be sure to reset the cursor to being visible if it wasn't
+    show_cursor(true);
+    exit(0);
+}
+
 int main(){
+    signal(SIGINT, sigint_handler);
     clear_screen();
     show_cursor(false);
     //get a random seed
@@ -907,13 +921,13 @@ int main(){
         bool has_held = false;
         bool hard_dropping = false;
         bool game_over = false;
-        unsigned int frame_counter = 0;
-        unsigned int current_lines_cleared = 0;
-        unsigned int line_total = 0;
-        unsigned int reset_count = 0;
-        unsigned int t_spin = 0;
+        uint frame_counter = 0;
+        uint current_lines_cleared = 0;
+        uint line_total = 0;
+        uint reset_count = 0;
+        uint t_spin = 0;
         int lock_delay = lock_delay_reset;
-        unsigned long score = 0;
+        ulong score = 0;
         float gravity = (float) 1/60;
         char buffer[10];
         string prev_clear = "nothing";
@@ -1066,7 +1080,7 @@ int main(){
 
             //if the piece has hit the bottom and the player is out of lock delay
             //or they've reset the lock delay 15 times
-            if (lock_delay <= 0 || reset_count >= 15){
+            if (lock_delay <= 0 || reset_count >= 15) {
                 //reset the parts of the piece
                 reset_piece = true;
                 //add the current piece to the stack of blocks
@@ -1136,7 +1150,7 @@ int main(){
             
             sprintf(buffer, "%7d", score);
             cout << "Score: " << buffer;
-            
+
             color(16, 16);
 
             frame_end_time = clock();
@@ -1162,18 +1176,22 @@ int main(){
         cout << "Score:          " << buffer << endl << endl;
 
         color(16, 16);
+
         cout << "Press enter to play again." << endl;
         cout << "Press escape to quit.";
 
         key = -1;
+
         while (key != ENTER && key != ESC){
             key = wait_for_kb_input();
         }
+
         play_again = key == ENTER;
         clear_screen();
         game.clear_board(true);
     }
-
+    
+    color(16, 16);
     return 0;
 }
 
