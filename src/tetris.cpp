@@ -35,7 +35,7 @@ struct Block{
     }
 
     bool is_out_of_bounds(){
-        return (col < 0 || col >= (int)width || row >= (int)height);
+        return (row < 0 || col < 0 || col >= (int)width || row >= (int)height);
     }
     
     bool operator==(const Block& other) const {
@@ -498,7 +498,9 @@ class Tetromino{
 
         }
 
-        void draw_at_pos(const uint row, const uint col, bool erase = false){
+        void draw_at_pos(const uint row, const uint col, bool erase = false,
+                         Stacked_Blocks* stack = nullptr){
+                         // can check bounds if you give a stack
             // we'll use these to find the offset of each block
             // in the tetromino from the center, which is always blocks[0]
             uint center_x = blocks.at(0).col;
@@ -507,6 +509,9 @@ class Tetromino{
             // set the pixel we're using to draw with
             Pixel draw_pix = erase? bg : blocks.at(0).face;
 
+            // var to track of we should draw this block or not
+            bool draw = true;
+
             // loop through the blocks
             for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -514,9 +519,24 @@ class Tetromino{
                     // from the center of the tetromino
                 block.row -= center_y;
                 block.col -= center_x;
+                
+                // add on the position they gave us
+                block.row += row;
+                block.col += col;
 
-                set_cursor_pos(block.row+row, block.col*2+col*2);
-                draw_pixel(draw_pix);
+                // if they gave us a stack, they want us to check bounds
+                if (stack != nullptr) {
+                    // just set draw = <in bounds> && !<on_stack>
+                    draw = !block.is_out_of_bounds() && !stack->is_on(block);
+                }
+
+                if (draw){
+                    set_cursor_pos(block.row, block.col*2);
+                    draw_pixel(draw_pix);
+                } else {
+                    // if we ever set it to false, reset it here
+                    draw = true;
+                }
             }
         }
 
@@ -1207,9 +1227,12 @@ int main(){
                                         stack, level, prev_clear_ptr, t_spin);
                 line_total += current_lines_cleared;
 
-                // if we cleared any lines, we have to remove the old ghost
+                // if we cleared any lines, we have to move the old ghost
                 if (current_lines_cleared > 0 && use_ghost) {
+                    // remove the old one
                     piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    // draw it back a little lower
+                    piece.draw_at_pos(ghost_row + current_lines_cleared, piece.blocks.at(0).col, false, &stack);
                 }
 
                 if (level < 20)
