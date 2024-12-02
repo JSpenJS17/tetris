@@ -126,7 +126,6 @@ void draw_pixel(Pixel pix){
     color(pix.fgc, pix.bgc);
     cout << pix.val << " ";
     color(16, 16);
-    delay(16);
 }
 
 Pixel::Pixel(char value, unsigned short bg_color = 16,
@@ -207,7 +206,7 @@ void Board::draw(unsigned const int height_offset, bool last_col_no_space){
     color(16, 16);
     //wait a frame to let the color change, for some reason it can break if it
     //doesn't wait a frame
-    delay(16);
+    //delay(16);
 }
 
 void Board::clear_board(const bool redraw_whole_board){

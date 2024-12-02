@@ -35,7 +35,11 @@ struct Block{
     }
 
     bool is_out_of_bounds(){
-        return (col < 0 || col >= width || row >= height);
+        return (col < 0 || col >= (int)width || row >= (int)height);
+    }
+    
+    bool operator==(const Block& other) const {
+        return row == other.row && col == other.col;
     }
 
     Block(){}
@@ -77,7 +81,7 @@ class Stacked_Blocks{
 
             for (uint i = 0; i < blocks.size(); i++){
                 Block stack_block = blocks.at(i);
-                if (row == stack_block.row && col == stack_block.col)
+                if ((int)row == stack_block.row && (int)col == stack_block.col)
                     return true;
             }
 
@@ -101,7 +105,7 @@ class Stacked_Blocks{
 
             for (row = 0; row < height; row++){
                 for (uint i = 0; i < blocks.size(); i++){
-                    if (blocks.at(i).row == row)
+                    if (blocks.at(i).row == (int)row)
                         in_row.push_back(blocks.at(i));
                 }
                 if (in_row.size() == width){
@@ -126,10 +130,10 @@ class Stacked_Blocks{
             uint i = 0;
             while (i < blocks.size()){
                 Block block = blocks.at(i);
-                if (block.row == row){
+                if (block.row == (int)row){
                     remove_block(i);
                     game.write(block.row, block.col, bg);
-                } else if (block.row < row) {
+                } else if (block.row < (int)row) {
                     game.write(block.row, block.col, bg);
                     blocks.at(i).set_row_relative(1);
                     i++;
@@ -143,9 +147,6 @@ class Stacked_Blocks{
 
 class Tetromino{
     public:
-        vector<Block> blocks;
-        char name;
-
         Tetromino(const char type){
             instantiated = true;
             name = type;
@@ -288,8 +289,8 @@ class Tetromino{
             return true;
         }
 
-        bool move_down(const Stacked_Blocks& stack, const int amount = 1,
-                const bool test = false){
+        bool move_down(const Stacked_Blocks& stack, int amount = 1, 
+                        bool test = false){
             uint i;
             for (i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -424,7 +425,7 @@ class Tetromino{
                 //assume valid rotation off the bat
                 valid_rotation = true;
                 
-                for (int i = 0; i < blocks.size(); i++){
+                for (uint i = 0; i < blocks.size(); i++){
                     Block *block = &rotation.at(i);
                     //translate the row, col of the current block
                     block->col += shamts[trans_set][trans_index][0];
@@ -497,23 +498,63 @@ class Tetromino{
 
         }
 
-        void draw_at_pos(const uint row, const uint col){
-            //center the block at the origin
+        void draw_at_pos(const uint row, const uint col, bool erase = false){
+            // we'll use these to find the offset of each block
+            // in the tetromino from the center, which is always blocks[0]
             uint center_x = blocks.at(0).col;
             uint center_y = blocks.at(0).row;
+            
+            // set the pixel we're using to draw with
+            Pixel draw_pix = erase? bg : blocks.at(0).face;
 
+            // loop through the blocks
             for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
+                // block.row - center_y will give us the relative offset (+/- 1) 
+                    // from the center of the tetromino
                 block.row -= center_y;
                 block.col -= center_x;
+
                 set_cursor_pos(block.row+row, block.col*2+col*2);
-                draw_pixel(block.face);
+                draw_pixel(draw_pix);
             }
         }
 
+        uint get_ghost_row(const Stacked_Blocks& stack) {
+            vector<Block> temp_blocks = blocks;
+
+            // Assume all blocks can descend infinitely
+            bool can_descend = true;
+
+            while (can_descend) {
+                // loop through our blocks
+                for (auto& block : temp_blocks) {
+                    // Temporarily move the block down
+                    block.row++;
+
+                    // Check if we hit something
+                    if (stack.is_on(block) || (uint)block.row >= height) {
+                        // we did, we're done
+                        can_descend = false;
+                        break;
+                    }
+                }
+
+            }
+            
+            // return the origin of the piece - 1 cause we overshot to check collision
+            return temp_blocks.at(0).row - 1;
+        }
+        
         explicit operator bool() const{
             return instantiated;
         }
+
+    
+        // keep track of our composing blocks
+        vector<Block> blocks;
+        // and our type (o, i, j, l, s, z, t)
+        char name;
 
     private:
         bool instantiated;
@@ -671,8 +712,12 @@ struct Bag{
     }
 };
 
-uint main_menu(){
-    uint level_selected = 1;
+int main_menu(){
+    // Returns an int representing the main menu selections
+        // abs value of the int is starting level
+        // + int means YES ghost piece
+        // - int means NO  ghost piece
+    int level_selected = 1;
     char key = -1;
     char buffer[3];
     color(BLACK, BLACK);
@@ -705,13 +750,32 @@ uint main_menu(){
     cout << "    Z to rotate counter clockwise" << endl;
     cout << "    C to hold a piece" << endl << endl;
 
-    cout << "Level: " << endl;
+    cout << "Level (arrows): " << endl;
+    cout << "Ghost piece (space):   " << endl;
     cout << endl << "Press enter to start!";
-    color(WHITE, RED);
     while (key != ENTER){
-        set_cursor_pos(10, 7);
-        sprintf(buffer, "%2d", level_selected);
+        // Do level display
+        color(WHITE, RED);
+        // Will have to change 10, 16 if menu text changes
+        set_cursor_pos(10, 16);
+        sprintf(buffer, "%2d", abs(level_selected));
         cout << buffer;
+        
+        // Do Ghost piece display
+        // Will have to change the 11, 21 if menu text changes
+        set_cursor_pos(11, 21);
+        string yesno = "UND";
+        // negative level_selected means NO ghost piece
+            // just to encode some more info in the return of this menu
+        if (level_selected < 0) {
+            color(WHITE, RED);
+            yesno = "NO ";
+        } else {
+            color(WHITE, GREEN);
+            yesno = "YES";
+        }
+        cout << yesno;
+
         key = wait_for_kb_input();
 
         switch (key){
@@ -741,6 +805,10 @@ uint main_menu(){
                 for (int i = 0; i < 5; i++)
                     if (level_selected > 1)
                         level_selected--;
+                break;
+
+            case SPACE:
+                level_selected = -level_selected;
                 break;
         }
     }
@@ -870,12 +938,16 @@ uint calculate_score(const uint lines_cleared,
 }
 
 void sigint_handler(int dummy) {
-	// should reset color on death
+    // should reset color on death
+    // TRY REALLY HARD!!
+    color(16, 16);
+    color(16, 16);
     color(16, 16);
     // should also clear screen
     clear_screen();
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
+    
     exit(0);
 }
 
@@ -888,7 +960,10 @@ int main(){
     bool play_again = true;
 
     while (play_again){
-        const int level_selected = main_menu();
+        int level_selected = main_menu();
+        bool use_ghost = level_selected >= 0;
+        level_selected = abs(level_selected);
+
         clear_screen();
         int level = level_selected;
 
@@ -932,17 +1007,33 @@ int main(){
         char buffer[10];
         string prev_clear = "nothing";
         string* prev_clear_ptr = &prev_clear;
-        
-        while (!game_over){
-            key = get_kb_input();
+        uint ghost_row = 0;
 
+        // initialize the board to blank
+        game.draw(0, 0);
+        
+        if (use_ghost) {
+            // draw initial ghost
+            ghost_row = piece.get_ghost_row(stack);
+            piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
+        }
+
+
+        while (!game_over){
             frame_start_time = clock();
+
+            key = get_kb_input();
             
             //gravity calculation
             gravity = (1.0/60.0) * (1.0/pow(.8-(((float) level-1)*.007), level-1));
 
             switch (key){
                 case LEFT:
+                    if (use_ghost) {
+                        // remove old ghost
+                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    }
+
                     successful_move = piece.move_horizontal(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (hit_bottom && successful_move){
@@ -952,6 +1043,11 @@ int main(){
                     break;
 
                 case RIGHT:
+                    if (use_ghost) {
+                        // remove old ghost
+                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    }
+
                     successful_move = piece.move_horizontal(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (hit_bottom && successful_move){
@@ -967,6 +1063,11 @@ int main(){
                     break;
 
                 case UP:
+                    if (use_ghost) {
+                        // remove old ghost
+                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    }
+
                     successful_move = piece.rotate(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (successful_move && hit_bottom){
@@ -981,6 +1082,11 @@ int main(){
                     break;
 
                 case 'z':
+                    if (use_ghost) {
+                        // remove old ghost
+                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    }
+
                     successful_move = piece.rotate(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (successful_move && hit_bottom){
@@ -990,6 +1096,11 @@ int main(){
                     break;
 
                 case 'c':
+                    if (use_ghost) {
+                        // remove old ghost
+                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    }
+
                     //if the player has not held this turn
                     if (!has_held){
                         //erase the current piece
@@ -1073,6 +1184,7 @@ int main(){
             if (hit_bottom){
                 if (key == SPACE)
                     lock_delay = 0;
+                // if framerate is changed, this -16 will have to change as well
                 lock_delay -= 16;
             }
 
@@ -1083,8 +1195,10 @@ int main(){
             if (lock_delay <= 0 || reset_count >= 15) {
                 //reset the parts of the piece
                 reset_piece = true;
+
                 //add the current piece to the stack of blocks
                 stack.add_blocks(piece.blocks);
+
                 //clear lines and store how many were cleared
                 current_lines_cleared = stack.clear_lines();
                 clear_score_output();
@@ -1092,6 +1206,11 @@ int main(){
                 score += calculate_score(current_lines_cleared, piece,
                                         stack, level, prev_clear_ptr, t_spin);
                 line_total += current_lines_cleared;
+
+                // if we cleared any lines, we have to remove the old ghost
+                if (current_lines_cleared > 0 && use_ghost) {
+                    piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                }
 
                 if (level < 20)
                     level = line_total/10 + level_selected;
@@ -1112,9 +1231,17 @@ int main(){
                 //draw it in the next piece spot
                 next_piece.draw_at_pos(3, width+3);
 
-                //only if they actually placed a block can we reset if they've held
-                //a block.
+                //only if they actually placed a block can we reset if they've used their hold
                 has_held = false;
+            }
+
+            /* GHOST PIECE */
+
+            if (use_ghost) {
+                // update the ghost position
+                ghost_row = piece.get_ghost_row(stack);
+                // draw new ghost
+                piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
             }
 
             /* JUST SWAPPED CURRENT PIECE */
@@ -1129,12 +1256,12 @@ int main(){
                 reset_piece = false;
 
                 //game over check, if we can't spawn a new piece, ripperino
-                for (int i = 0; i < piece.blocks.size(); i++){
+                for (uint i = 0; i < piece.blocks.size(); i++){
                     if (stack.is_on(piece.blocks.at(i)))
                         game_over = true;
                 }
             }
-
+            
             /* UPDATE DISPLAY */
 
             game.draw(0, 0);
@@ -1148,8 +1275,10 @@ int main(){
             sprintf(buffer, "%7d", line_total);
             cout << "Lines: " << buffer << endl;
             
-            sprintf(buffer, "%7d", score);
+            sprintf(buffer, "%7lu", score);
             cout << "Score: " << buffer;
+            
+            //cout << endl << "Ghost row: " << ghost_row << "                       " << endl;
 
             color(16, 16);
 
@@ -1172,7 +1301,7 @@ int main(){
         sprintf(buffer, "%7d", line_total);
         cout << "Lines Cleared:  " << buffer << endl;
 
-        sprintf(buffer, "%7d", score);
+        sprintf(buffer, "%7lu", score);
         cout << "Score:          " << buffer << endl << endl;
 
         color(16, 16);
