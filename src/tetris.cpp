@@ -98,18 +98,27 @@ class Stacked_Blocks{
             uint row;
             vector<Block> in_row;
 
+            // loop through all the rows
             for (row = 0; row < height; row++){
+                // loop through all the blocks
                 for (uint i = 0; i < blocks.size(); i++){
+                    // if the block is in the current row
                     if (blocks.at(i).row == (int)row)
+                        // add it to the in_row vector
                         in_row.push_back(blocks.at(i));
                 }
+                // if the row is full, clear it
                 if (in_row.size() == width){
+                    // only clear the row if we've been told to
                     clear_row(row);
+                    // otherwise, add it to the count of cleared rows
                     cleared_rows->push_back(row);
                 }
+                // reset in_row vector
                 in_row.clear();
             }
 
+            // update the screen
             write();
             return cleared_rows;
         }
@@ -309,7 +318,7 @@ class Tetromino{
 
             return false;
         }
-        
+
         void write(bool erase = false){
             for (uint i = 0; i < blocks.size(); i++){
                 Block block = blocks.at(i);
@@ -807,31 +816,32 @@ int main_menu(){
 
         switch (key){
             case UP:
-                if (level_selected < 20)
-                    level_selected++;
+                if (abs(level_selected) < 20)
+                    level_selected = level_selected > 0? level_selected + 1 : level_selected - 1;
                 break;
 
             case DOWN:
-                if (level_selected > 1)
-                    level_selected--;
+                if (abs(level_selected) > 1)
+                    level_selected = level_selected > 0? level_selected - 1 : level_selected + 1;
                 break;
 
             case RIGHT:
                 {
                     int inc_num = 5;
-                    if (level_selected == 1)
+                    if (abs(level_selected) == 1)
                         inc_num = 4;
 
                     for (int i = 0; i < inc_num; i++)
-                        if (level_selected < 20)
-                            level_selected++;
+                        if (abs(level_selected) < 20)
+                            level_selected = level_selected > 0? level_selected + 1 : level_selected - 1;
                     break;
                 }
 
             case LEFT:
                 for (int i = 0; i < 5; i++)
-                    if (level_selected > 1)
-                        level_selected--;
+                    if (abs(level_selected) > 1)
+                        level_selected = level_selected > 0? level_selected - 1 : level_selected + 1;
+
                 break;
 
             case SPACE:
