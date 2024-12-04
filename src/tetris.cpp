@@ -94,9 +94,10 @@ class Stacked_Blocks{
             return false;
         }
 
-        vector<uint>* clear_lines(vector<uint>* cleared_rows){
+        uint clear_lines(){
             uint row;
             vector<Block> in_row;
+            uint cleared_rows = 0;
 
             // loop through all the rows
             for (row = 0; row < height; row++){
@@ -112,7 +113,7 @@ class Stacked_Blocks{
                     // only clear the row if we've been told to
                     clear_row(row);
                     // otherwise, add it to the count of cleared rows
-                    cleared_rows->push_back(row);
+                    cleared_rows++;
                 }
                 // reset in_row vector
                 in_row.clear();
@@ -548,6 +549,9 @@ class Tetromino{
                 if (draw){
                     set_cursor_pos(block.row, block.col*2);
                     draw_pixel(draw_pix);
+                    // if you're within the board's boundaries, you should write to it
+                    if (block.row < (int)height && block.col < (int)width)
+                        game.write(block.row, block.col, draw_pix);
                 } else {
                     // if we ever set it to false, reset it here
                     draw = true;
@@ -1263,33 +1267,30 @@ int main(){
                 //add the current piece to the stack of blocks
                 stack.add_blocks(piece.blocks);
 
+                if (use_ghost) {
+                    // remove the old ghost
+                    piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                    // write the piece just in case we overwrote it
+                    piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
+                }
+
                 //clear lines and store how many were cleared
-                vector<uint>* cleared_lines = new vector<uint>;
-                cleared_lines = stack.clear_lines(cleared_lines);
-                current_lines_cleared = cleared_lines->size();
+                current_lines_cleared = stack.clear_lines();
                 clear_score_output();
                 t_spin = successful_move;
                 score += calculate_score(current_lines_cleared, piece,
                                         stack, level, prev_clear_ptr, t_spin);
                 line_total += current_lines_cleared;
-
-                // if we cleared any lines, we have to deal with the ghost
-                    // if we didn't clear any lines, the ghost is overlapping the piece, so do nada
-                if (current_lines_cleared > 0 && use_ghost) {
-                    // remove the old one
-                    piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                    // redraw the stack just in case we overwrote it
-                    stack.write();
-                }
-
-                // remember to free the memory
-                delete cleared_lines;
-
+                
                 if (level < 20)
                     level = line_total/10 + level_selected;
                 //change current piece to the previous next one
                 piece = next_piece;
+                // write the new piece
                 piece.write();
+                
+                // write the stack to make sure we didn't miss anything
+                stack.write();
 
                 //get a new next piece
                 next_piece = bag.get_piece();
@@ -1347,7 +1348,7 @@ int main(){
             frame_end_time = clock();
             int total_time = (frame_end_time - frame_start_time) / (CLOCKS_PER_SEC / 1000);
 
-            // fflush(stdin); // flush stdin to prevent input lag
+            fflush(stdin); // flush stdin to prevent input lag
             delay(16 - total_time);
         }
 
