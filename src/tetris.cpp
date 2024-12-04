@@ -788,7 +788,8 @@ int main_menu(){
     cout << "    Space to hard drop" << endl;
     cout << "    Up to rotate clockwise" << endl;
     cout << "    Z to rotate counter clockwise" << endl;
-    cout << "    C to hold a piece" << endl << endl;
+    cout << "    C to hold a piece" << endl;
+    cout << "    P to pause" << endl << endl;
 
     cout << "Level (arrows): " << endl;
     cout << "Ghost piece (space):   " << endl;
@@ -797,13 +798,13 @@ int main_menu(){
         // Do level display
         color(WHITE, RED);
         // Will have to change 10, 16 if menu text changes
-        set_cursor_pos(10, 16);
+        set_cursor_pos(11, 16);
         sprintf(buffer, "%2d", abs(level_selected));
         cout << buffer;
         
         // Do Ghost piece display
         // Will have to change the 11, 21 if menu text changes
-        set_cursor_pos(11, 21);
+        set_cursor_pos(12, 21);
         string yesno = "UND";
         // negative level_selected means NO ghost piece
             // just to encode some more info in the return of this menu
@@ -1135,7 +1136,13 @@ int main(){
 
                 case P:
                     key = -1;
+                    // put the PAUSED display where score goes
+                    clear_score_output();
+                    color(BLACK, WHITE);
+                    set_cursor_pos(13, width*2 + 1);
+                    cout << "PAUSED";
                     while (wait_for_kb_input() != P);
+                    clear_score_output();
                     break;
 
                 case 'z':
@@ -1375,7 +1382,7 @@ int main(){
         color(16, 16);
 
         cout << "Press enter to play again." << endl;
-        cout << "Press escape to quit.";
+        cout << "Press P to quit.";
 
         key = -1;
 
