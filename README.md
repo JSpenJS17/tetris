@@ -20,3 +20,5 @@ Clone the repository.
 Run `make` in the root directory.
 
 If you don't have g++ installed, install it.
+
+Run the executable file in terminal with `./tetris`
