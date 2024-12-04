@@ -574,7 +574,6 @@ class Tetromino{
                         break;
                     }
                 }
-
             }
             
             // return the origin of the piece - 1 cause we overshot to check collision
@@ -1233,6 +1232,16 @@ int main(){
                 lock_delay -= 16;
             }
 
+            /* GHOST PIECE */
+
+            if (use_ghost) {
+                // update the ghost position
+                ghost_row = piece.get_ghost_row(stack);
+                // draw new ghost
+                piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
+            }
+
+
             /* PLACED A BLOCK */
 
             //if the piece has hit the bottom and the player is out of lock delay
@@ -1254,14 +1263,13 @@ int main(){
                                         stack, level, prev_clear_ptr, t_spin);
                 line_total += current_lines_cleared;
 
-                // if we cleared any lines, we have to move the old ghost
+                // if we cleared any lines, we have to deal with the ghost
+                    // if we didn't clear any lines, the ghost is overlapping the piece, so do nada
                 if (current_lines_cleared > 0 && use_ghost) {
                     // remove the old one
                     piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                    // draw it at the new position
-                    // need to find a way to account for the lines cleared
-                    piece.draw_at_pos(ghost_row + current_lines_cleared, piece.blocks.at(0).col, 
-                                        false, &stack, cleared_lines);
+                    // redraw the stack just in case we overwrote it
+                    stack.write();
                 }
 
                 // remember to free the memory
@@ -1288,15 +1296,6 @@ int main(){
 
                 //only if they actually placed a block can we reset if they've used their hold
                 has_held = false;
-            }
-
-            /* GHOST PIECE */
-
-            if (use_ghost) {
-                // update the ghost position
-                ghost_row = piece.get_ghost_row(stack);
-                // draw new ghost
-                piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
             }
 
             /* JUST SWAPPED CURRENT PIECE */
