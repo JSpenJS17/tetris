@@ -4,3 +4,4 @@ tetris
 *.o
 *.exe
 settings.json
+test*
