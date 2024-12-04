@@ -1071,11 +1071,15 @@ int main(){
             //gravity calculation
             gravity = (1.0/60.0) * (1.0/pow(.8-(((float) level-1)*.007), level-1));
 
+            /* INPUT HANDLING */
+
             switch (key){
                 case LEFT:
                     if (use_ghost) {
                         // remove old ghost
                         piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                        // hacky fix to make sure the ghost doesn't overwrite the piece
+                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
                     }
 
                     successful_move = piece.move_horizontal(true, stack);
@@ -1090,6 +1094,8 @@ int main(){
                     if (use_ghost) {
                         // remove old ghost
                         piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                        // hacky fix to make sure the ghost doesn't overwrite the piece
+                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
                     }
 
                     successful_move = piece.move_horizontal(false, stack);
@@ -1110,8 +1116,9 @@ int main(){
                     if (use_ghost) {
                         // remove old ghost
                         piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                        // hacky fix to make sure the ghost doesn't overwrite the piece
+                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
                     }
-
                     successful_move = piece.rotate(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
                     if (successful_move && hit_bottom){
@@ -1129,6 +1136,8 @@ int main(){
                     if (use_ghost) {
                         // remove old ghost
                         piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                        // hacky fix to make sure the ghost doesn't overwrite the piece
+                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
                     }
 
                     successful_move = piece.rotate(false, stack);
@@ -1143,6 +1152,8 @@ int main(){
                     if (use_ghost) {
                         // remove old ghost
                         piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
+                        // hacky fix to make sure the ghost doesn't overwrite the piece
+                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
                     }
 
                     //if the player has not held this turn
@@ -1223,7 +1234,7 @@ int main(){
                 frame_counter = 0;
             }
 
-            /* A BLOCK LANDED BUT ISN'T PLACED YET */
+            /* A PIECE LANDED BUT ISN'T PLACED YET */
 
             if (hit_bottom){
                 if (key == SPACE)
@@ -1241,8 +1252,7 @@ int main(){
                 piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
             }
 
-
-            /* PLACED A BLOCK */
+            /* PLACED A PIECE */
 
             //if the piece has hit the bottom and the player is out of lock delay
             //or they've reset the lock delay 15 times
