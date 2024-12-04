@@ -12,6 +12,7 @@ using namespace std;
 
 #ifdef WINDOWS
 // Windows specific includes
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <conio.h>
 
@@ -34,7 +35,7 @@ using namespace std;
 #define WHITE           15
 
 // Windows key codes
-const uint ENTER = 13, ESC = 27, SPACE = 32,
+const int ENTER = 13, ESC = 27, SPACE = 32,
                    UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
 #endif

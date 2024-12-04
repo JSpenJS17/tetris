@@ -3,10 +3,12 @@
 #include <csignal>
 #include "engine.hpp"
 
+#ifndef uint
 typedef unsigned int uint;
+#endif
+#ifndef ulong
 typedef unsigned long ulong;
-
-using namespace std;
+#endif
 
 const uint width = 10;
 const uint height = 20;
