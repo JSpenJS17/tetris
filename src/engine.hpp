@@ -35,7 +35,7 @@ using namespace std;
 #define WHITE           15
 
 // Windows key codes
-const uint ENTER = 13, P = 80, SPACE = 32,
+const uint ENTER = 13, P = 112, SPACE = 32,
                    UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
 #endif
