@@ -10,6 +10,9 @@ endif
 
 all: build
 
+debug:
+	g++ $(CFILES) $(CARGS) -g -o tetris
+
 build:
 	g++ $(CFILES) $(CARGS) -o tetris
 

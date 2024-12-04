@@ -94,10 +94,9 @@ class Stacked_Blocks{
             return false;
         }
 
-        uint clear_lines(){
+        vector<uint>* clear_lines(vector<uint>* cleared_rows){
             uint row;
             vector<Block> in_row;
-            uint cleared = 0;
 
             for (row = 0; row < height; row++){
                 for (uint i = 0; i < blocks.size(); i++){
@@ -106,13 +105,13 @@ class Stacked_Blocks{
                 }
                 if (in_row.size() == width){
                     clear_row(row);
-                    cleared++;
+                    cleared_rows->push_back(row);
                 }
                 in_row.clear();
             }
 
             write();
-            return cleared;
+            return cleared_rows;
         }
 
         bool is_empty() const{
@@ -495,7 +494,7 @@ class Tetromino{
         }
 
         void draw_at_pos(const uint row, const uint col, bool erase = false,
-                         Stacked_Blocks* stack = nullptr){
+                         Stacked_Blocks* stack = nullptr, vector<uint>* cleared_lines = nullptr){
                          // can check bounds if you give a stack
             // we'll use these to find the offset of each block
             // in the tetromino from the center, which is always blocks[0]
@@ -523,7 +522,18 @@ class Tetromino{
                 // if they gave us a stack, they want us to check bounds
                 if (stack != nullptr) {
                     // just set draw = <in bounds> && !<on_stack>
-                    draw = !block.is_out_of_bounds() && !stack->is_on(block);
+                    draw = draw && !block.is_out_of_bounds() && !stack->is_on(block);
+                }
+
+                if (cleared_lines != nullptr){
+                    // if we're drawing, check if we're on a cleared line
+                    for (uint j = 0; j < cleared_lines->size(); j++){
+                        // if we are, don't draw
+                        if (block.row == (int)cleared_lines->at(j)+1){ // +1 because we're drawing the next frame
+                            draw = false;
+                            break;
+                        }
+                    }
                 }
 
                 if (draw){
@@ -1225,7 +1235,9 @@ int main(){
                 stack.add_blocks(piece.blocks);
 
                 //clear lines and store how many were cleared
-                current_lines_cleared = stack.clear_lines();
+                vector<uint>* cleared_lines = new vector<uint>;
+                cleared_lines = stack.clear_lines(cleared_lines);
+                current_lines_cleared = cleared_lines->size();
                 clear_score_output();
                 t_spin = successful_move;
                 score += calculate_score(current_lines_cleared, piece,
@@ -1236,9 +1248,14 @@ int main(){
                 if (current_lines_cleared > 0 && use_ghost) {
                     // remove the old one
                     piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                    // draw it back a little lower
-                    piece.draw_at_pos(ghost_row + current_lines_cleared, piece.blocks.at(0).col, false, &stack);
+                    // draw it at the new position
+                    // need to find a way to account for the lines cleared
+                    piece.draw_at_pos(ghost_row + current_lines_cleared, piece.blocks.at(0).col, 
+                                        false, &stack, cleared_lines);
                 }
+
+                // remember to free the memory
+                delete cleared_lines;
 
                 if (level < 20)
                     level = line_total/10 + level_selected;
