@@ -1,16 +1,12 @@
-#include <iostream>
 #include <limits>
-#include <time.h>
-#include <cmath>
+#include <string.h>
+#include <csignal>
 #include "engine.hpp"
 
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
 using namespace std;
-
-const uint ENTER = 13, ESC = 27, SPACE = 32,
-                   UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
 const uint width = 10;
 const uint height = 20;
@@ -740,8 +736,8 @@ int main_menu(){
     int level_selected = 1;
     char key = -1;
     char buffer[3];
-    color(BLACK, BLACK);
-    cout << ".          ";
+    color(16, 16);
+    cout << "           ";
     
     const int title_bg = WHITE;
 
@@ -758,7 +754,7 @@ int main_menu(){
     color(title_bg, PURPLE);
     cout << "S";
 
-    color(BLACK, BLACK);
+    color(16, 16);
     cout << "           " << endl << endl;
 
     color(WHITE, BLACK);
@@ -796,6 +792,7 @@ int main_menu(){
         }
         cout << yesno;
 
+        fflush(stdout); // need to flush here due to linux not 
         key = wait_for_kb_input();
 
         switch (key){
@@ -840,7 +837,7 @@ int main_menu(){
 
 void clear_score_output(){
     //clear previous score output
-    color(BLACK, WHITE);
+    color(16, 16);
     for (int i = 0; i < 5; i++){
         set_cursor_pos(13+i, width * 2 + 1);
         cout << "             ";
@@ -967,12 +964,20 @@ void sigint_handler(int dummy) {
     clear_screen();
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
+    // if we're on linux, we should reset the terminal
+    #ifdef LINUX
+        reset_termios();
+    #endif
     
     exit(0);
 }
 
 int main(){
     signal(SIGINT, sigint_handler);
+    // in Linux only, we need to init the termios
+    #ifdef LINUX
+        init_termios();
+    #endif
     clear_screen();
     show_cursor(false);
     //get a random seed
@@ -1301,12 +1306,13 @@ int main(){
             sprintf(buffer, "%7lu", score);
             cout << "Score: " << buffer;
             
-            //cout << endl << "Ghost row: " << ghost_row << "                       " << endl;
-
             color(16, 16);
 
             frame_end_time = clock();
-            delay(16-(frame_end_time-frame_start_time));    
+            int total_time = (frame_end_time - frame_start_time) / (CLOCKS_PER_SEC / 1000);
+
+            // fflush(stdin); // flush stdin to prevent input lag
+            delay(16 - total_time);
         }
 
         /* PRINT GAME OVER SCREEN */
@@ -1343,7 +1349,8 @@ int main(){
         game.clear_board(true);
     }
     
-    color(16, 16);
+    // should reset everything when we're done as if we hit ctrl+c
+    sigint_handler(0);
     return 0;
 }
 

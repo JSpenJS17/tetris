@@ -1,1 +1,6 @@
-tetris.exe
+tetris
+*.txt
+*.out
+*.o
+*.exe
+settings.json

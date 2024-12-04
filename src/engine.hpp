@@ -1,15 +1,21 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include <iostream>
-#include <windows.h>
-#include <vector>
-#include <time.h>
-#include <conio.h>
-#include <stdio.h>
-
 using namespace std;
 
+#include <iostream>
+#include <vector>
+#include <time.h>
+#include <stdio.h>
+#include <cmath>
+
+
+#ifdef WINDOWS
+// Windows specific includes
+#include <windows.h>
+#include <conio.h>
+
+// Windows color codes
 #define BLACK           0
 #define BLUE            1
 #define GREEN           2
@@ -26,6 +32,45 @@ using namespace std;
 #define MAGENTA         13
 #define LIGHT_YELLOW    14
 #define WHITE           15
+
+// Windows key codes
+const uint ENTER = 13, ESC = 27, SPACE = 32,
+                   UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
+
+#endif
+
+#ifdef LINUX
+// Linux specific includes
+#include <termios.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+// Linux color codes
+#define BLACK           30
+#define RED             31
+#define GREEN           32
+#define YELLOW          33
+#define BLUE            34
+#define PURPLE          35
+#define CYAN            36
+#define LIGHT_GRAY      37
+// All colors past here are non-standard -- might not work on all machines!
+#define GRAY            90 
+#define LIGHT_RED       91
+#define LIGHT_GREEN     92
+#define LIGHT_YELLOW    93
+#define LIGHT_BLUE      94
+#define MAGENTA         95
+#define SKY_BLUE        96
+#define WHITE           97
+
+// Linux key codes
+const uint ENTER = 10, ESC = 27, SPACE = 32,
+                   UP = 65, LEFT = 68, DOWN = 66, RIGHT = 67;
+
+// Terminal controls specific to linux - init controller and reset controller
+void init_termios();
+void reset_termios();
+#endif
 
 float dist(const int x1, const int y1, const int x2, const int y2);
 

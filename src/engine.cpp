@@ -1,20 +1,9 @@
 #include "engine.hpp"
-#include <iostream>
-#include <cmath>
 
 using namespace std;
 
 float dist(const int x1, const int y1, const int x2, const int y2){
     return sqrt((y2-y1)*(y2-y1) + (x2-x1)*(x2-x1));
-}
-
-void delay(int ms){
-    //delay a millisecond amount
-    //storing start time
-    clock_t start_time = clock();
- 
-    //looping till desired time is achieved
-    while (clock() < start_time + ms);
 }
 
 int rand_int(int limit) {
@@ -27,6 +16,17 @@ int rand_int(int limit) {
     } while (retval > limit);
 
     return retval;
+}
+
+#ifdef WINDOWS
+// Windows implementation of terminal control functions
+void delay(int ms){
+    //delay a millisecond amount
+    //storing start time
+    clock_t start_time = clock();
+ 
+    //looping till desired time is achieved
+    while (clock() < start_time + ms);
 }
 
 void clear_screen(){
@@ -120,6 +120,92 @@ void set_cursor_pos(unsigned const int row, unsigned const int col){
     pos.Y = row;
     SetConsoleCursorPosition(out, pos);
 }
+
+#endif
+
+#ifdef LINUX
+// Linux implementation of terminal control functions
+void delay(int ms){
+    //delay a millisecond amount
+    usleep(ms * 1000);
+}
+
+void clear_screen(){
+    cout << "\033[2J\033[1;1H";
+}
+
+void show_cursor(bool show){
+    if (show)
+        cout << "\e[?25h";
+    else
+        cout << "\e[?25l";
+}
+
+void color(unsigned const short bgc,
+           unsigned const short font_color){
+    /* changes the background and text color to a color between 0-15.
+     * if the input is (16, 16), resets the colors to console default.
+     */
+    if (bgc == 16 && font_color == 16){
+        cout << "\033[0m";
+    } else {
+        cout << "\033[" << bgc+10 << ";" << font_color << "m";
+    }
+}
+
+static struct termios old, current;
+
+void init_termios(){
+    tcgetattr(0, &old);
+    current = old;
+    current.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(0, TCSANOW, &current);
+}
+
+void reset_termios() {
+    tcsetattr(0, TCSANOW, &old);
+}
+
+char wait_for_kb_input(){
+    /* waits for user keyboard input and returns the character they input */
+    char key = -1;
+    key = getchar();
+    if (key == 27) { // Escape sequence
+        if (getchar() == 91) { // '['
+            key = getchar(); // Final byte
+        }
+    }
+    return key;
+}
+
+bool kbhit(){
+    /* checks if there is a keyboard input 
+    assumes termios has been init'd*/
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+    return byteswaiting > 0;
+}
+
+char get_kb_input(){
+    /* doesn't wait for user keyboard press, just asks if there was one and 
+     * returns the key value it was. If there was no input, returns -1
+     */
+    char key = -1;
+    if (kbhit()) {
+        key = getchar();
+        if (key == 27) { // Escape sequence
+            if (getchar() == 91) { // '['
+                key = getchar(); // Final byte
+            }
+        }
+    }
+    return key;
+}
+
+void set_cursor_pos(unsigned const int row, unsigned const int col){
+    cout << "\033[" << row+1 << ";" << col+1 << "H";
+}
+#endif
 
 void draw_pixel(Pixel pix){
     /* draws a pixel at the current cursor position */
