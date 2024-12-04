@@ -159,6 +159,8 @@ void init_termios(){
     tcgetattr(0, &old);
     current = old;
     current.c_lflag &= ~(ICANON | ECHO);
+    current.c_cc[VMIN] = 1;
+    current.c_cc[VTIME] = 0;
     tcsetattr(0, TCSANOW, &current);
 }
 

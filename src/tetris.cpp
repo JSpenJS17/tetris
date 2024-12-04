@@ -1133,9 +1133,9 @@ int main(){
                     }
                     break;
 
-                case ESC:
+                case P:
                     key = -1;
-                    while (wait_for_kb_input() != ESC);
+                    while (wait_for_kb_input() != P);
                     break;
 
                 case 'z':
@@ -1379,7 +1379,7 @@ int main(){
 
         key = -1;
 
-        while (key != ENTER && key != ESC){
+        while (key != ENTER && key != P){
             key = wait_for_kb_input();
         }
 

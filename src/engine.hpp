@@ -35,7 +35,7 @@ using namespace std;
 #define WHITE           15
 
 // Windows key codes
-const int ENTER = 13, ESC = 27, SPACE = 32,
+const uint ENTER = 13, P = 80, SPACE = 32,
                    UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
 #endif
@@ -65,7 +65,7 @@ const int ENTER = 13, ESC = 27, SPACE = 32,
 #define WHITE           97
 
 // Linux key codes
-const uint ENTER = 10, ESC = 27, SPACE = 32,
+const uint ENTER = 10, P = 112, SPACE = 32,
                    UP = 65, LEFT = 68, DOWN = 66, RIGHT = 67;
 
 // Terminal controls specific to linux - init controller and reset controller
