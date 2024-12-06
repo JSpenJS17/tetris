@@ -16,6 +16,11 @@ const uint lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
 
+typedef struct POS{
+    int row;
+    int col;
+} POS;
+
 struct Block{
     Block(const int init_row, const int init_col, 
             const Pixel face_pix){
@@ -505,9 +510,8 @@ class Tetromino{
 
         }
 
-        void draw_at_pos(const uint row, const uint col, bool erase = false,
-                         Stacked_Blocks* stack = nullptr, vector<uint>* cleared_lines = nullptr){
-                         // can check bounds if you give a stack
+        void draw_at_pos(const uint row, const uint col, 
+                         bool erase = false, bool write_not_draw = false){
             // we'll use these to find the offset of each block
             // in the tetromino from the center, which is always blocks[0]
             uint center_x = blocks.at(0).col;
@@ -531,29 +535,16 @@ class Tetromino{
                 block.row += row;
                 block.col += col;
 
-                // if they gave us a stack, they want us to check bounds
-                if (stack != nullptr) {
-                    // just set draw = <in bounds> && !<on_stack>
-                    draw = draw && !block.is_out_of_bounds() && !stack->is_on(block);
-                }
-
-                if (cleared_lines != nullptr){
-                    // if we're drawing, check if we're on a cleared line
-                    for (uint j = 0; j < cleared_lines->size(); j++){
-                        // if we are, don't draw
-                        if (block.row == (int)cleared_lines->at(j)+1){ // +1 because we're drawing the next frame
-                            draw = false;
-                            break;
-                        }
-                    }
-                }
-
                 if (draw){
                     set_cursor_pos(block.row, block.col*2);
-                    draw_pixel(draw_pix);
-                    // if you're within the board's boundaries, you should write to it
-                    if (block.row < (int)height && block.col < (int)width)
-                        game.write(block.row, block.col, draw_pix);
+                    if (write_not_draw){
+                        // should check bounds here, can't write outside of the Board
+                        if (block.row < (int)height && block.col < (int)width) {
+                            game.write(block.row, block.col, draw_pix);
+                        }
+                    } else {
+                        draw_pixel(draw_pix);
+                    }
                 } else {
                     // if we ever set it to false, reset it here
                     draw = true;
@@ -561,7 +552,7 @@ class Tetromino{
             }
         }
 
-        uint get_ghost_row(const Stacked_Blocks& stack) {
+        POS get_ghost_pos(const Stacked_Blocks& stack) {
             vector<Block> temp_blocks = blocks;
 
             // Assume all blocks can descend infinitely
@@ -583,7 +574,7 @@ class Tetromino{
             }
             
             // return the origin of the piece - 1 cause we overshot to check collision
-            return temp_blocks.at(0).row - 1;
+            return (POS){temp_blocks.at(0).row - 1, temp_blocks.at(0).col};
         }
         
         explicit operator bool() const{
@@ -1058,15 +1049,17 @@ int main(){
         char buffer[10];
         string prev_clear = "nothing";
         string* prev_clear_ptr = &prev_clear;
-        uint ghost_row = 0;
+        Tetromino ghost_piece;
+        POS ghost_pos;
 
         // initialize the board to blank
         game.draw(0, 0);
         
         if (use_ghost) {
             // draw initial ghost
-            ghost_row = piece.get_ghost_row(stack);
-            piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
+            ghost_piece = piece;
+            ghost_pos = piece.get_ghost_pos(stack);
+            ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, false, true);
         }
 
 
@@ -1082,15 +1075,9 @@ int main(){
 
             switch (key){
                 case LEFT:
-                    if (use_ghost) {
-                        // remove old ghost
-                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                        // hacky fix to make sure the ghost doesn't overwrite the piece
-                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                    }
-
                     successful_move = piece.move_horizontal(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+
                     if (hit_bottom && successful_move){
                         lock_delay = lock_delay_reset;
                         reset_count++;
@@ -1098,15 +1085,9 @@ int main(){
                     break;
 
                 case RIGHT:
-                    if (use_ghost) {
-                        // remove old ghost
-                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                        // hacky fix to make sure the ghost doesn't overwrite the piece
-                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                    }
-
                     successful_move = piece.move_horizontal(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+
                     if (hit_bottom && successful_move){
                         lock_delay = lock_delay_reset;
                         reset_count++;
@@ -1120,14 +1101,9 @@ int main(){
                     break;
 
                 case UP:
-                    if (use_ghost) {
-                        // remove old ghost
-                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                        // hacky fix to make sure the ghost doesn't overwrite the piece
-                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                    }
                     successful_move = piece.rotate(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+
                     if (successful_move && hit_bottom){
                         lock_delay = lock_delay_reset;
                         reset_count++;
@@ -1146,15 +1122,9 @@ int main(){
                     break;
 
                 case 'z':
-                    if (use_ghost) {
-                        // remove old ghost
-                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                        // hacky fix to make sure the ghost doesn't overwrite the piece
-                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                    }
-
                     successful_move = piece.rotate(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+
                     if (successful_move && hit_bottom){
                         lock_delay = lock_delay_reset;
                         reset_count++;
@@ -1162,17 +1132,16 @@ int main(){
                     break;
 
                 case 'c':
-                    if (use_ghost) {
-                        // remove old ghost
-                        piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                        // hacky fix to make sure the ghost doesn't overwrite the piece
-                        piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                    }
-
                     //if the player has not held this turn
                     if (!has_held){
                         //erase the current piece
                         piece.write(true);
+
+                        // erase the current ghost if we're using ghost
+                        if (use_ghost) {
+                            // remove old ghost
+                            ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
+                        }
 
                         //if held_piece exists
                         if (held_piece){
@@ -1259,10 +1228,18 @@ int main(){
             /* GHOST PIECE */
 
             if (use_ghost) {
+                if (successful_move) {
+                    // if the move was a success, remove the old ghost
+                    ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
+                    // hacky fix to make sure the ghost doesn't overwrite the piece
+                    piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col, false, true);
+                }
+                // update the ghost
+                ghost_piece = piece;
                 // update the ghost position
-                ghost_row = piece.get_ghost_row(stack);
+                ghost_pos = piece.get_ghost_pos(stack);
                 // draw new ghost
-                piece.draw_at_pos(ghost_row, piece.blocks.at(0).col);
+                ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, false, true);
             }
 
             /* PLACED A PIECE */
@@ -1275,13 +1252,6 @@ int main(){
 
                 //add the current piece to the stack of blocks
                 stack.add_blocks(piece.blocks);
-
-                if (use_ghost) {
-                    // remove the old ghost
-                    piece.draw_at_pos(ghost_row, piece.blocks.at(0).col, true);
-                    // write the piece just in case we overwrote it
-                    piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col);
-                }
 
                 //clear lines and store how many were cleared
                 current_lines_cleared = stack.clear_lines();
@@ -1335,6 +1305,9 @@ int main(){
                         game_over = true;
                 }
             }
+
+            // need to reset this here
+            successful_move = false;
             
             /* UPDATE DISPLAY */
 
