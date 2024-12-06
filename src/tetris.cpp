@@ -1038,6 +1038,7 @@ int main(){
         bool has_held = false;
         bool hard_dropping = false;
         bool game_over = false;
+        bool made_move = false;
         uint frame_counter = 0;
         uint current_lines_cleared = 0;
         uint line_total = 0;
@@ -1077,6 +1078,7 @@ int main(){
                 case LEFT:
                     successful_move = piece.move_horizontal(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+                    made_move = true;
 
                     if (hit_bottom && successful_move){
                         lock_delay = lock_delay_reset;
@@ -1087,6 +1089,7 @@ int main(){
                 case RIGHT:
                     successful_move = piece.move_horizontal(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+                    made_move = true;
 
                     if (hit_bottom && successful_move){
                         lock_delay = lock_delay_reset;
@@ -1103,6 +1106,7 @@ int main(){
                 case UP:
                     successful_move = piece.rotate(true, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+                    made_move = true;
 
                     if (successful_move && hit_bottom){
                         lock_delay = lock_delay_reset;
@@ -1124,6 +1128,7 @@ int main(){
                 case 'z':
                     successful_move = piece.rotate(false, stack);
                     hit_bottom = piece.move_down(stack, 1, true);
+                    made_move = true;
 
                     if (successful_move && hit_bottom){
                         lock_delay = lock_delay_reset;
@@ -1228,7 +1233,7 @@ int main(){
             /* GHOST PIECE */
 
             if (use_ghost) {
-                if (successful_move) {
+                if (successful_move && made_move) {
                     // if the move was a success, remove the old ghost
                     ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
                     // hacky fix to make sure the ghost doesn't overwrite the piece
@@ -1241,6 +1246,9 @@ int main(){
                 // draw new ghost
                 ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, false, true);
             }
+
+            // reset the made_move flag
+            made_move = false;
 
             /* PLACED A PIECE */
 
@@ -1306,9 +1314,6 @@ int main(){
                 }
             }
 
-            // need to reset this here
-            successful_move = false;
-            
             /* UPDATE DISPLAY */
 
             game.draw(0, 0);
