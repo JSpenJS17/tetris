@@ -1233,7 +1233,7 @@ int main(){
             /* GHOST PIECE */
 
             if (use_ghost) {
-                if (successful_move && made_move) {
+                if (successful_move && made_move && !hard_dropping && lock_delay > 0 && reset_count < 15) {
                     // if the move was a success, remove the old ghost
                     ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
                     // hacky fix to make sure the ghost doesn't overwrite the piece
