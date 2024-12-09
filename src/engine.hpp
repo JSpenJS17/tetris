@@ -131,9 +131,9 @@ class Board{
         Pixel filler;
         unsigned int len;
         unsigned int hei;
-        vector<vector<Pixel>> freshboard;
-        vector<vector<Pixel>> oldboard;
-        vector<vector<Pixel>> board;
+        vector<vector<Pixel> > freshboard;
+        vector<vector<Pixel> > oldboard;
+        vector<vector<Pixel> > board;
         
         void print_in_bounds(Pixel pix, unsigned const int col);
 
