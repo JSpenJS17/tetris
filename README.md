@@ -1,7 +1,7 @@
 ## Description
 Tetris for Linux and Windows terminal. 
 
-Tested in Windows 11, Ubuntu 22.04, and Oracle Linux 9.4.
+Tested in Windows 11, MacOS, Ubuntu 22.04, and Oracle Linux 9.4.
 
 Adheres to the 2009 Tetris Handbook.
 
