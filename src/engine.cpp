@@ -18,7 +18,7 @@ int rand_int(int limit) {
     return retval;
 }
 
-#ifdef WINDOWS
+#ifdef _WIN32
 // Windows implementation of terminal control functions
 void delay(int ms){
     //delay a millisecond amount
@@ -121,9 +121,7 @@ void set_cursor_pos(unsigned const int row, unsigned const int col){
     SetConsoleCursorPosition(out, pos);
 }
 
-#endif
-
-#ifdef LINUX
+#elif defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 // Linux implementation of terminal control functions
 void delay(int ms){
     //delay a millisecond amount

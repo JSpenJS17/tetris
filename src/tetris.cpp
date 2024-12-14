@@ -982,7 +982,7 @@ void sigint_handler(int dummy) {
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
     // if we're on linux, we should reset the terminal
-    #ifdef LINUX
+    #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
         reset_termios();
     #endif
     
@@ -992,7 +992,7 @@ void sigint_handler(int dummy) {
 int main(){
     signal(SIGINT, sigint_handler);
     // in Linux only, we need to init the termios
-    #ifdef LINUX
+    #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
         init_termios();
     #endif
     clear_screen();

@@ -10,7 +10,7 @@ using namespace std;
 #include <cmath>
 
 
-#ifdef WINDOWS
+#ifdef _WIN32
 // Windows specific includes
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -38,9 +38,7 @@ using namespace std;
 const int ENTER = 13, P = 112, SPACE = 32,
                    UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
 
-#endif
-
-#ifdef LINUX
+#elif defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 // Linux specific includes
 #include <termios.h>
 #include <sys/ioctl.h>
