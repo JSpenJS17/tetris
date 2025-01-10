@@ -203,7 +203,7 @@ class Tetromino{
 
                 case 'o':
                     {
-                        Pixel o_face = Pixel('o', YELLOW, YELLOW);
+                        Pixel o_face = Pixel('o', LIGHT_YELLOW, LIGHT_YELLOW);
                         blocks.push_back(Block(1, width/2-1, o_face));
                         blocks.push_back(Block(1, width/2, o_face));
                         blocks.push_back(Block(0, width/2-1, o_face));
@@ -214,7 +214,7 @@ class Tetromino{
                 case 'i':
                     {
                         memcpy(shamts, i_shamt, sizeof(shamts));
-                        Pixel i_face = Pixel('i', CYAN, CYAN);
+                        Pixel i_face = Pixel('i', SKY_BLUE, SKY_BLUE);
                         blocks.push_back(Block(1, width/2, i_face));
                         blocks.push_back(Block(1, width/2-1, i_face));
                         blocks.push_back(Block(1, width/2-2, i_face));
@@ -225,7 +225,7 @@ class Tetromino{
                 case 's':
                     {
                         memcpy(shamts, not_i_shamt, sizeof(shamts));
-                        Pixel s_face = Pixel('s', LIGHT_GREEN, LIGHT_GREEN);
+                        Pixel s_face = Pixel('s', GREEN, GREEN);
                         blocks.push_back(Block(1, width/2-1, s_face));
                         blocks.push_back(Block(0, width/2-1, s_face));
                         blocks.push_back(Block(0, width/2, s_face));
@@ -236,7 +236,7 @@ class Tetromino{
                 case 'z':
                     {
                         memcpy(shamts, not_i_shamt, sizeof(shamts));
-                        Pixel z_face = Pixel('z', LIGHT_RED, LIGHT_RED);
+                        Pixel z_face = Pixel('z', RED, RED);
                         blocks.push_back(Block(1, width/2-1, z_face));
                         blocks.push_back(Block(1, width/2, z_face));
                         blocks.push_back(Block(0, width/2-2, z_face));
@@ -247,7 +247,7 @@ class Tetromino{
                 case 'l':
                     {
                         memcpy(shamts, not_i_shamt, sizeof(shamts));
-                        Pixel l_face = Pixel('L', GRAY, GRAY);
+                        Pixel l_face = Pixel('L', LIGHT_RED, LIGHT_RED);
                         blocks.push_back(Block(1, width/2-1, l_face));
                         blocks.push_back(Block(0, width/2, l_face));
                         blocks.push_back(Block(1, width/2-2, l_face));
