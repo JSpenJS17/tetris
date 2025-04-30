@@ -1,1 +1,1 @@
-char *get_username();
+char *whoami();

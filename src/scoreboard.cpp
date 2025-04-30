@@ -84,6 +84,9 @@ TopScore* parse(char *str)
     Returns a list of the top ten TopScore structs in order
     */
 
+    num_topscores = 0;
+    placement = 0;
+
     /* Allocate memory for the top scores */
     TopScore *top_scores = (TopScore*)malloc(10 * sizeof(TopScore));
     if (!top_scores) {

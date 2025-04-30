@@ -1365,7 +1365,7 @@ int main(){
         color(16, 16);
 
 #ifdef SCOREBOARD
-        TopScore* top_ten = get_scores(get_username(), score);
+        TopScore* top_ten = get_scores(whoami(), score);
         if (top_ten) 
         {
             printf("Top Ten Global Scores:\n");

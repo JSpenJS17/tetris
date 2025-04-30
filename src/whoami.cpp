@@ -16,7 +16,7 @@
 #include <unistd.h>
 #endif 
 
-char *get_username()
+char *whoami()
 {
     static char login[64];
     char *l = NULL;
