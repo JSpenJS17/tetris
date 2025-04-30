@@ -750,7 +750,7 @@ int main_menu(){
         // - int means NO  ghost piece
     int level_selected = 1;
     char key = -1;
-    char buffer[3];
+    char buffer[12];
     color(16, 16);
     cout << "           ";
     
@@ -1047,7 +1047,7 @@ int main(){
         int lock_delay = lock_delay_reset;
         ulong score = 0;
         float gravity = (float) 1/60;
-        char buffer[10];
+        char buffer[32];
         string prev_clear = "nothing";
         string* prev_clear_ptr = &prev_clear;
         Tetromino ghost_piece;
@@ -1358,6 +1358,9 @@ int main(){
         cout << "Score:          " << buffer << endl << endl;
 
         color(16, 16);
+
+        cout << "Global Scoreboard:" << endl;
+        
 
         cout << "Press enter to play again." << endl;
         cout << "Press P to quit.";

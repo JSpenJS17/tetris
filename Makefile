@@ -1,36 +1,52 @@
-# Source and object files
-SRC_DIR = src
-OBJ_DIR = $(SRC_DIR)/obj
-CFILES = $(wildcard $(SRC_DIR)/*.cpp)
-OFILES = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CFILES))
+# Tetris Makefile
 
-# Compiler and flags
-CXX = g++
-CARGS = -Wall
+ifeq ($(OS), Windows_NT)
+	OS_TYPE := Windows
+else
+	UNAME_S := $(shell uname -s)
 
-# Target executable
-TARGET = tetris
+	ifeq ($(UNAME_S), Linux)
+		OS_TYPE := Linux
+	else ifeq ($(UNAME_S), Darwin)
+		OS_TYPE := MacOS
+	else
+		OS_TYPE := Unknown
+	endif
+endif
 
-# Default target
-all: build
+$(info Detected OS: $(OS_TYPE))
 
-# Create object directory if it doesn't exist
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+SRC_DIR := src
+OBJ_DIR := $(SRC_DIR)/obj
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
+HDR := $(wildcard $(SRC_DIR)/*.hpp)
 
-# Compile .cpp files to .o files in obj/
+CC := g++
+CFLAGS := -g -O2
+
+ifeq ($(OS_TYPE), Windows)
+	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+	LIBS := -lcurl -I./include -L./lib 
+	TARGET := tetris.exe
+else
+	MKDIR = mkdir -p $(1)
+	LIBS := -lcurl
+	TARGET := tetris
+endif
+
+# Final executable target
+$(TARGET): $(HDR) $(OBJ)
+	$(CC) $(OBJ) $(LIBS) $(DEFS) -o $(TARGET)
+
+# Rule to compile .cpp -> .o (ensures obj/ exists)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) $(CARGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
 
-# Build release version
-build: $(OFILES)
-	$(CXX) $(CARGS) $(OFILES) -o $(TARGET)
+# Create the obj/ directory if it doesn't exist
+$(OBJ_DIR):
+	$(call MKDIR, $(OBJ_DIR))
 
-# Build debug version
-debug: CARGS += -g
-debug: build
-
-# Clean up
+.PHONY: clean
 clean:
-	rm -f $(TARGET) $(OBJ_DIR)/*.o
-
+	rm -f $(OBJ_DIR)/*.o $(TARGET)
