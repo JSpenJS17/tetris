@@ -14,7 +14,6 @@ using namespace std;
 // Windows specific includes
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <conio.h>
 
 // Windows color codes
 #define BLACK           0
@@ -35,8 +34,7 @@ using namespace std;
 #define WHITE           15
 
 // Windows key codes
-const int ENTER = 13, P = 112, SPACE = 32,
-                   UP = 72, LEFT = 75, DOWN = 80, RIGHT = 77;
+const int ENTER = 13;
 
 #elif defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 // Linux specific includes
@@ -63,13 +61,15 @@ const int ENTER = 13, P = 112, SPACE = 32,
 #define WHITE           97
 
 // Linux key codes
-const uint ENTER = 10, P = 112, SPACE = 32,
-                   UP = 65, LEFT = 68, DOWN = 66, RIGHT = 67;
-
-// Terminal controls specific to linux - init controller and reset controller
-void init_termios();
-void reset_termios();
+const int ENTER = 10;
 #endif
+
+// Linux and windows shared code
+const int SPACE = 32, ESC = 27,
+        UP = 65, LEFT = 68, DOWN = 66, RIGHT = 67;
+
+void init_engine();
+void close_engine();
 
 float dist(const int x1, const int y1, const int x2, const int y2);
 

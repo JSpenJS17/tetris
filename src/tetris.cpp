@@ -786,7 +786,7 @@ int main_menu(){
     cout << "    Up to rotate clockwise" << endl;
     cout << "    Z to rotate counter clockwise" << endl;
     cout << "    C to hold a piece" << endl;
-    cout << "    P to pause" << endl << endl;
+    cout << "    ESC to pause" << endl << endl;
 
     cout << "Level (arrows): " << endl;
     cout << "Ghost piece (space):   " << endl;
@@ -1012,10 +1012,7 @@ void sigint_handler(int dummy) {
 
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
-    // if we're on linux, we should reset the terminal
-    #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
-        reset_termios();
-    #endif
+    close_engine();
     
     exit(0);
 }
@@ -1023,9 +1020,7 @@ void sigint_handler(int dummy) {
 int main(){
     signal(SIGINT, sigint_handler);
     // in Linux only, we need to init the termios
-    #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
-        init_termios();
-    #endif
+    init_engine();
     clear_screen();
     show_cursor(false);
     //get a random seed
@@ -1144,14 +1139,14 @@ int main(){
                     }
                     break;
 
-                case P:
+                case ESC:
                     key = -1;
                     // put the PAUSED display where score goes
                     clear_score_output();
                     color(BLACK, WHITE);
                     set_cursor_pos(13, width*2 + 1);
                     cout << "PAUSED";
-                    while (wait_for_kb_input() != P);
+                    while (wait_for_kb_input() != ESC);
                     clear_score_output();
                     break;
 
