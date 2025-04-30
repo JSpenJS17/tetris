@@ -28,36 +28,42 @@ ALL_SRC := $(SRC) $(SB_SRC)
 ALL_HDR := $(HDR) $(SB_HDR)
 OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC)) \
        $(patsubst $(SB_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SB_SRC))
+OBJ_NOSB := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%_nosb.o, $(SRC))
 
 CC := g++
 CFLAGS := -g -O2
 LIBS := -lcurl
+DEFS := -DSCOREBOARD
+TARGET := tetris
+TARGET_NOSB := tetris_noscoreboard
 
 ifeq ($(OS_TYPE), Windows)
 	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 	LIBS += -I./include -L./lib
-	TARGET := tetris.exe
 else
 	MKDIR = mkdir -p $(1)
-	TARGET := tetris
 endif
 
 # Default target includes scoreboard
-all: DEFS := -DSCOREBOARD
 all: $(TARGET)
 
 # No-scoreboard target
-noscoreboard: SRC := $(wildcard $(SRC_DIR)/*.cpp)
-noscoreboard: HDR := $(wildcard $(SRC_DIR)/*.hpp)
-noscoreboard: OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
-noscoreboard: DEFS :=
-noscoreboard: $(TARGET)
+noscoreboard: DEFS := 
+noscoreboard: LIBS :=
+noscoreboard: $(TARGET_NOSB)
 
 # Final executable target
 $(TARGET): $(ALL_HDR) $(OBJ)
 	$(CC) $(OBJ) $(LIBS) $(DEFS) -o $(TARGET)
 
-# Rule to compile .cpp -> .o
+$(TARGET_NOSB): $(HDR) $(OBJ_NOSB)
+	$(CC) $(OBJ_NOSB) $(LIBS) $(DEFS) -o $(TARGET_NOSB)
+
+# Rule to compile .cpp -> .o (no scoreboard)
+$(OBJ_DIR)/%_nosb.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
+
+# Rule to compile .cpp -> .o (scoreboard)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
 $(OBJ_DIR)/%.o: $(SB_DIR)/%.cpp | $(OBJ_DIR)
@@ -69,5 +75,4 @@ $(OBJ_DIR):
 
 .PHONY: clean all noscoreboard
 clean:
-	rm -f $(OBJ_DIR)/*.o $(TARGET)
-	@echo "Cleaned up object files and executable."
+	rm -f $(OBJ_DIR)/*.o $(TARGET)*
