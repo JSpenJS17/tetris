@@ -4,5 +4,5 @@
 .vscode
 test*
 src/obj
-tetris
+./tetris
 colortest*
