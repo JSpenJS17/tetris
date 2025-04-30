@@ -1,7 +1,7 @@
 ## Description
 Tetris for Linux and Windows terminal. 
 
-Tested in Windows 11, MacOS, Ubuntu 22.04, and Oracle Linux 9.4.
+Tested in Windows 11 and Ubuntu 22.04.
 
 Adheres to the 2009 Tetris Handbook.
 
@@ -11,14 +11,20 @@ Purpose was to familiarize myself with C++.
 
 Can run in headless environments!
 
+Now has a global leaderboard!
+
 ## Binaries
-Pre-built binaries can be found in the releases section.
+Pre-built binaries can be found in the releases section or in the `/bin` folder.
 
 ## Building from Source
-Clone the repository.
 
-Run `make` in the root directory.
+```
+git clone https://github.com/JSpenJS17/tetris.git
+cd tetris
+make
+```
 
-If you don't have g++ installed, install it.
+You need `libcurl-x64.dll` in the same directory as `tetris.exe` for it to run on Windows.
 
-Run the executable file in terminal with `./tetris`
+I trust that if you're on Linux you're smart enough to install the prerequisites for yourself.
+You need `<curl/curl.h>`
