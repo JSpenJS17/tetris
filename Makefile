@@ -35,7 +35,7 @@ CFLAGS := -g -O2
 LIBS := -lcurl
 DEFS := -DSCOREBOARD
 TARGET := tetris
-TARGET_NOSB := tetris_noscoreboard
+TARGET_NOSB := tetris_offline
 
 ifeq ($(OS_TYPE), Windows)
 	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
@@ -48,9 +48,9 @@ endif
 all: $(TARGET)
 
 # No-scoreboard target
-noscoreboard: DEFS := 
-noscoreboard: LIBS :=
-noscoreboard: $(TARGET_NOSB)
+offline: DEFS := 
+offline: LIBS :=
+offline: $(TARGET_NOSB)
 
 # Final executable target
 $(TARGET): $(ALL_HDR) $(OBJ)
@@ -73,6 +73,6 @@ $(OBJ_DIR)/%.o: $(SB_DIR)/%.cpp | $(OBJ_DIR)
 $(OBJ_DIR):
 	$(call MKDIR, $(OBJ_DIR))
 
-.PHONY: clean all noscoreboard
+.PHONY: clean all offline
 clean:
 	rm -f $(OBJ_DIR)/*.o $(TARGET)*
