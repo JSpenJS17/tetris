@@ -24,7 +24,7 @@ cd tetris
 make
 ```
 
-You need `libcurl-x64.dll` in the same directory as `tetris.exe` for it to run on Windows.
+You need the .dlls in the same directory as `tetris.exe` for it to run on Windows.
 
 I trust that if you're on Linux you're smart enough to install the prerequisites for yourself.
 You need `<curl/curl.h>`
