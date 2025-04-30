@@ -1,6 +1,7 @@
 *.txt
 *.out
 *.o
-*.exe
-settings.json
+.vscode
 test*
+src/obj
+tetris
