@@ -34,14 +34,18 @@ CC := g++
 CFLAGS := -g -O2
 LIBS := -lcurl
 DEFS := -DSCOREBOARD
-TARGET := tetris
-TARGET_NOSB := tetris_offline
 
 ifeq ($(OS_TYPE), Windows)
 	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 	LIBS += -I./include -L./lib
+	FORCE := -Force
+	TARGET := bin/windows/tetris
+	TARGET_NOSB := bin/windows/tetris_offline
 else
 	MKDIR = mkdir -p $(1)
+	FORCE := -f
+	TARGET := tetris
+	TARGET_NOSB := tetris_offline
 endif
 
 # Default target includes scoreboard
@@ -75,4 +79,4 @@ $(OBJ_DIR):
 
 .PHONY: clean all offline
 clean:
-	rm -f $(OBJ_DIR)/*.o $(TARGET)*
+	rm $(FORCE) $(OBJ_DIR)/*.o $(TARGET)*

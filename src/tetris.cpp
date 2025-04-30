@@ -992,7 +992,7 @@ void sigint_handler(int dummy) {
         TopScore* top_ten = get_scores(whoami(), score);
         if (top_ten) 
         {
-            printf("Top Ten Global Scores:\n");
+            printf("\nTop Ten Global Scores:\n");
             printf("     Score Name\n");
             for (int i = 0; i < num_topscores; i++)
             {
