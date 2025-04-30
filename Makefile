@@ -21,6 +21,7 @@ OBJ_DIR := $(SRC_DIR)/obj
 SRC := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 HDR := $(wildcard $(SRC_DIR)/*.hpp)
+DEFS := -DSCOREBOARD
 
 CC := g++
 CFLAGS := -g -O2

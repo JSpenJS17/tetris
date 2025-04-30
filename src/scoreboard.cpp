@@ -5,6 +5,62 @@
 #include "scoreboard.hpp"
 #include "cJSON.hpp"
 
+int placement = 0;
+int num_topscores = 0;
+
+TopScore* get_scores(const char* name, int score) {
+    TopScore* ret = NULL;
+
+    // Initialize a curl handle
+    CURLcode res;
+    CURL* curl;
+    char json_data[256];
+    struct curl_slist *headers = NULL;
+
+    /* Set up CURL response buffer */
+    struct ResponseBuffer response;
+    response.data = (char*)malloc(1); // initial empty buffer
+    response.size = 0;
+
+    curl = curl_easy_init();
+
+    if (curl) 
+    {
+        
+        /* Set up the write function and buffer */
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
+        curl_easy_setopt(curl, CURLOPT_URL, "http://piercelane2.ddns.net:5001/");
+        
+        /*
+         * Send her to the server (http post using curl.h to piercelane2.ddns.net) if she was the top score
+         *
+         * Create our score data
+         * JSON Format:
+         *  {"name": score}
+         */
+
+        sprintf(json_data, "{\"%s\": %d}", name, score);
+
+        /* Set up CURL */
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        /* Do the deed */
+        res = curl_easy_perform(curl);
+
+        ret = parse(response.data);
+
+        // Cleanup
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+        free(response.data);
+    }
+
+    return ret;
+}
+
 /*
  * parse:
  *  Parse through the JSON returned by the score database
@@ -13,8 +69,8 @@ TopScore* parse(char *str)
 {
     /* Parse through a JSON of the format: 
     {
-        "placement": 1,
-        "top_scores": {
+      "placement": 1,
+      "top_scores": {
         "1": {
             "name": "pierce",
             "score": 1000,
@@ -23,7 +79,7 @@ TopScore* parse(char *str)
             "name": "billy",
             "score": 900,
         }
-        }
+      }
     }
     Returns a list of the top ten TopScore structs in order
     */

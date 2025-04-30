@@ -3,6 +3,11 @@
 #include <csignal>
 #include "engine.hpp"
 
+#ifdef SCOREBOARD
+#include "scoreboard.hpp"
+#include "whoami.hpp"
+#endif
+
 #ifndef uint
 typedef unsigned int uint;
 #endif
@@ -1359,15 +1364,33 @@ int main(){
 
         color(16, 16);
 
-        cout << "Global Scoreboard:" << endl;
-        
+#ifdef SCOREBOARD
+        TopScore* top_ten = get_scores(get_username(), score);
+        if (top_ten) 
+        {
+            printf("Top Ten Global Scores:\n");
+            printf("     Score Name\n");
+            for (int i = 0; i < num_topscores; i++)
+            {
+                printf("%2d %7d %s\n", i + 1, top_ten[i].score, top_ten[i].name);
+            }
+            if (placement != -1)
+            {
+                printf("\nYou placed number %d globally.\n\n", placement);
+            }
+        } 
+        else 
+        {
+            printf("Failed to grab global scores.\n\n");
+        }
+        free(top_ten);
+#endif
 
         cout << "Press enter to play again." << endl;
-        cout << "Press P to quit.";
+        cout << "Press Ctrl+C to quit.";
 
         key = -1;
-
-        while (key != ENTER && key != P){
+        while (key != ENTER){
             key = wait_for_kb_input();
         }
 
