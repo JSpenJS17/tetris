@@ -225,18 +225,6 @@ void close_engine() {
     tcsetattr(0, TCSANOW, &old);
 }
 
-char wait_for_kb_input(){
-    /* waits for user keyboard input and returns the character they input */
-    char key = -1;
-    key = getchar();
-    if (key == 27) { // Escape sequence
-        if (getchar() == 91) { // '['
-            key = getchar(); // Final byte
-        }
-    }
-    return key;
-}
-
 bool kbhit(){
     /* checks if there is a keyboard input 
     assumes termios has been init'd*/
@@ -245,20 +233,51 @@ bool kbhit(){
     return byteswaiting > 0;
 }
 
-char get_kb_input(){
-    /* doesn't wait for user keyboard press, just asks if there was one and 
-     * returns the key value it was. If there was no input, returns -1
+char wait_for_kb_input() {
+    /* 
+     * Waits for user keyboard input and returns the character they input 
+     * returns 27 on ESC press, A/B/C/D on UP/DOWN/LEFT/RIGHT respectively
      */
-    char key = -1;
-    if (kbhit()) {
-        key = getchar();
-        if (key == 27) { // Escape sequence
-            if (getchar() == 91) { // '['
-                key = getchar(); // Final byte
-            }
+    char c;
+    // blocking read
+    read(0, &c, 1);
+    if (kbhit() && c == 27) // more in stdin and potential esc sequence
+    {
+        read(0, &c, 1);
+        if (c == '[')
+        {
+            read(0, &c, 1);
+            return c;
         }
+        return '?'; // unknown esc sequence
     }
-    return key;
+    return c;
+}
+
+char get_kb_input(){
+    /* 
+     * Doesn't wait for user keyboard press, just asks if there was one and 
+     * returns the key value it was. If there was no input, returns -1
+     * returns 27 on ESC press, A/B/C/D on UP/DOWN/LEFT/RIGHT respectively
+     */
+    char c;
+    if (kbhit())
+    {
+        // blocking read
+        read(0, &c, 1);
+        if (kbhit() && c == 27) // more in stdin and potential esc sequence
+        {
+            read(0, &c, 1);
+            if (c == '[')
+            {
+                read(0, &c, 1);
+                return c;
+            }
+            return '?'; // unknown esc sequence
+        }
+        return c;
+    }
+    return -1;
 }
 
 void set_cursor_pos(unsigned const int row, unsigned const int col){
