@@ -4,8 +4,8 @@
 #include "engine.hpp"
 
 #ifdef SCOREBOARD
-#include "scoreboard.hpp"
-#include "whoami.hpp"
+#include "scoreboard/scoreboard.hpp"
+#include "scoreboard/whoami.hpp"
 #endif
 
 #ifndef uint
