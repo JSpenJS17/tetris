@@ -20,6 +20,7 @@ const uint height = 20;
 const uint lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
+ulong score = 0;
 
 typedef struct POS{
     int row;
@@ -64,12 +65,12 @@ class Stacked_Blocks{
         void add_blocks(const vector<Block>& piece){          
             blocks.insert(blocks.end(), 
                           piece.begin(), piece.end());
-            write();
+            // write();
         }
 
         void add_block(const Block& block){
             blocks.push_back(block);
-            write();
+            // write();
         }
 
         void remove_block(const uint index){
@@ -132,7 +133,7 @@ class Stacked_Blocks{
             }
 
             // update the screen
-            write();
+            // write();
             return cleared_rows;
         }
 
@@ -158,7 +159,7 @@ class Stacked_Blocks{
                     i++;
                 }
             }
-            write();
+            // write();
         }
 };
 
@@ -982,8 +983,33 @@ void sigint_handler(int dummy) {
     color(16, 16);
     color(16, 16);
     color(16, 16);
+
     // should also clear screen
     clear_screen();
+
+    // this will double submit on game loss, but that's lowkey fine
+    #ifdef SCOREBOARD
+        TopScore* top_ten = get_scores(whoami(), score);
+        if (top_ten) 
+        {
+            printf("Top Ten Global Scores:\n");
+            printf("     Score Name\n");
+            for (int i = 0; i < num_topscores; i++)
+            {
+                printf("%2d %7d %s\n", i + 1, top_ten[i].score, top_ten[i].name);
+            }
+            if (placement != -1)
+            {
+                printf("\nYou placed number %d globally.\n", placement);
+            }
+        } 
+        else 
+        {
+            printf("Failed to grab global scores.\n");
+        }
+        free(top_ten);
+    #endif
+
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
     // if we're on linux, we should reset the terminal
@@ -1050,7 +1076,6 @@ int main(){
         uint reset_count = 0;
         uint t_spin = 0;
         int lock_delay = lock_delay_reset;
-        ulong score = 0;
         float gravity = (float) 1/60;
         char buffer[32];
         string prev_clear = "nothing";
@@ -1238,12 +1263,10 @@ int main(){
             /* GHOST PIECE */
 
             if (use_ghost) {
-                if (successful_move && made_move && !hard_dropping && lock_delay > 0 && reset_count <= 15) {
-                    // if the move was a success, remove the old ghost
-                    ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
-                    // hacky fix to make sure the ghost doesn't overwrite the piece
-                    piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col, false, true);
-                }
+                // if the move was a success, remove the old ghost
+                ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
+                // hacky fix to make sure the ghost doesn't overwrite the piece
+                piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col, false, true);
                 // update the ghost
                 ghost_piece = piece;
                 // update the ghost position
@@ -1320,6 +1343,7 @@ int main(){
             }
 
             /* UPDATE DISPLAY */
+            stack.write();
 
             game.draw(0, 0);
 
