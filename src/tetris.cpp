@@ -1146,6 +1146,7 @@ int main(){
                     color(BLACK, WHITE);
                     set_cursor_pos(13, width*2 + 1);
                     cout << "PAUSED";
+                    fflush(stdout);
                     while (wait_for_kb_input() != ESC);
                     clear_score_output();
                     break;

@@ -91,6 +91,8 @@ void color(unsigned const short bgc,
     }
 }
 
+static bool engine_initialized = false;
+
 /* Some donothing functions to standardize linux and windows frontend code */
 // DWORD* original_console_mode = nullptr;
 void init_engine() {
@@ -100,14 +102,15 @@ void init_engine() {
     // DWORD mode = *original_console_mode;
     // mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT); // Disable line input and echo
     // SetConsoleMode(hStdin, mode);
+    engine_initialized = true;
 }
 
 void close_engine() {
-    // if (!original_console_mode)
-    // {
-    //     std::cerr << "Must run init_engine() before close_engine()";
-    //     exit(1);
-    // }
+    if (!engine_initialized)
+    {
+        std::cerr << "Must run init_engine() before close_engine()";
+        exit(1);
+    }
     // HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
     // SetConsoleMode(hStdin, *original_console_mode); // Restore saved mode
 }
@@ -206,6 +209,7 @@ void color(unsigned const short bgc,
 }
 
 static struct termios old, current;
+static bool engine_initialized = false;
 
 void init_engine(){
     tcgetattr(0, &old);
@@ -214,10 +218,11 @@ void init_engine(){
     current.c_cc[VMIN] = 1;
     current.c_cc[VTIME] = 0;
     tcsetattr(0, TCSANOW, &current);
+    engine_initialized = true;
 }
 
 void close_engine() {
-    if (!old)
+    if (!engine_initialized)
     {
         std::cerr << "Must run init_engine() before close_engine()";
         exit(1); 
@@ -240,13 +245,13 @@ char wait_for_kb_input() {
      */
     char c;
     // blocking read
-    read(0, &c, 1);
+    size_t dummy = read(0, &c, 1);
     if (kbhit() && c == 27) // more in stdin and potential esc sequence
     {
-        read(0, &c, 1);
+        dummy = read(0, &c, 1);
         if (c == '[')
         {
-            read(0, &c, 1);
+            dummy = read(0, &c, 1);
             return c;
         }
         return '?'; // unknown esc sequence
@@ -264,13 +269,13 @@ char get_kb_input(){
     if (kbhit())
     {
         // blocking read
-        read(0, &c, 1);
+        size_t dummy = read(0, &c, 1);
         if (kbhit() && c == 27) // more in stdin and potential esc sequence
         {
-            read(0, &c, 1);
+            dummy = read(0, &c, 1);
             if (c == '[')
             {
-                read(0, &c, 1);
+                dummy = read(0, &c, 1);
                 return c;
             }
             return '?'; // unknown esc sequence
