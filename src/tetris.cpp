@@ -1041,7 +1041,6 @@ int main(){
         char key = -1;
         Tetromino piece = bag.get_piece();
         piece.write();
-        piece.move_down(stack);
 
         set_cursor_pos(0, width*2+1);
         color(GRAY, WHITE);
@@ -1102,24 +1101,12 @@ int main(){
             switch (key){
                 case LEFT:
                     successful_move = piece.move_horizontal(true, stack);
-                    hit_bottom = piece.move_down(stack, 1, true);
                     made_move = true;
-
-                    if (hit_bottom && successful_move){
-                        lock_delay = lock_delay_reset;
-                        reset_count++;
-                    }
                     break;
 
                 case RIGHT:
                     successful_move = piece.move_horizontal(false, stack);
-                    hit_bottom = piece.move_down(stack, 1, true);
                     made_move = true;
-
-                    if (hit_bottom && successful_move){
-                        lock_delay = lock_delay_reset;
-                        reset_count++;
-                    }
                     break;
 
                 case DOWN:
@@ -1130,13 +1117,7 @@ int main(){
 
                 case UP:
                     successful_move = piece.rotate(true, stack);
-                    hit_bottom = piece.move_down(stack, 1, true);
                     made_move = true;
-
-                    if (successful_move && hit_bottom){
-                        lock_delay = lock_delay_reset;
-                        reset_count++;
-                    }
                     break;
 
                 case ESC:
@@ -1153,18 +1134,13 @@ int main(){
 
                 case 'z':
                     successful_move = piece.rotate(false, stack);
-                    hit_bottom = piece.move_down(stack, 1, true);
                     made_move = true;
-
-                    if (successful_move && hit_bottom){
-                        lock_delay = lock_delay_reset;
-                        reset_count++;
-                    }
                     break;
 
                 case 'c':
                     //if the player has not held this turn
                     if (!has_held){
+                        lock_delay = lock_delay_reset;
                         //erase the current piece
                         piece.write(true);
 
@@ -1228,6 +1204,22 @@ int main(){
                     hard_dropping = true;
                     break;
                     
+            }
+
+
+            /* 
+             * intentionally use previous hit_bottom val here
+             *    we want to know if we were just on the floor, 
+             *    not if we are on the floor after the movement
+             */
+            if (made_move && successful_move && hit_bottom) {
+                // if we made a move and it was successful and we were just on the floor,
+                // we reset lock delay
+                lock_delay = lock_delay_reset;
+                reset_count++;
+
+                // update our hit_bottom value so we know if the movement we just made put us on the floor
+                hit_bottom = piece.move_down(stack, 1, true);
             }
 
             /* GRAVITY */
@@ -1297,8 +1289,8 @@ int main(){
                     level = line_total/10 + level_selected;
                 //change current piece to the previous next one
                 piece = next_piece;
-                // write the new piece
-                piece.write();
+                // new piece is written later
+                // This prevents some dumb graphical bug
                 
                 // write the stack to make sure we didn't miss anything
                 stack.write();
@@ -1326,7 +1318,8 @@ int main(){
             //or because they just placed their block
             if (reset_piece){            
                 //reset tracker variables
-                hit_bottom = piece.move_down(stack);
+                // Not sure why we update hit_bottom, but don't actually move the piece
+                hit_bottom = piece.move_down(stack, 1, true);
                 lock_delay = lock_delay_reset;
                 reset_count = 0;
                 reset_piece = false;
@@ -1407,7 +1400,7 @@ int main(){
 #endif
 
         cout << "Press enter to play again." << endl;
-        cout << "Press Ctrl+C to quit.";
+        cout << "Press Ctrl+C to quit." << endl;
 
         key = -1;
         while (key != ENTER){
