@@ -6,6 +6,7 @@ const uint height = 20;
 const uint lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
+Board partner_game = Board(width, height, bg); // displayed to the right
 ulong score = 0;
 GAMETYPE game_type;
 uint line_total = 0;
@@ -125,8 +126,8 @@ void clear_score_output(){
     //clear previous score output
     color(16, 16);
     for (int i = 0; i < 5; i++){
-        set_cursor_pos(13+i, width * 2 + 1);
-        cout << "             ";
+        set_cursor_pos(13+i, width * 2);
+        cout << "              ";
     }
     color(16, 16);
 }
@@ -310,6 +311,13 @@ void sigint_handler(int dummy) {
     game_over_screen();
 }
 
+void draw_games() {
+    partner_game = game;
+    game.draw();
+    partner_game.draw(0, false, width*2);
+    fflush(stdout);
+}
+
 void pause_game() {
     const char* paused = "  PAUSED  ";
     Pixel previous_pix[strlen(paused)];
@@ -319,8 +327,7 @@ void pause_game() {
         previous_pix[i] = game.get_pix_at(5, i);
         game.write(5, i, Pixel(paused[i], BLACK, WHITE));
     }
-    game.draw(0, false);
-    fflush(stdout);
+    draw_games();
     
     while (wait_for_kb_input() != ESC);
 
@@ -328,8 +335,7 @@ void pause_game() {
     for (int i = 0; i < strlen(paused); i++) {
         game.write(5, i, previous_pix[i]);
     }
-    game.draw(0, false);
-    fflush(stdout);
+    draw_games();
 }
 
 int main(){
@@ -389,7 +395,7 @@ int main(){
     Tetromino ghost_piece;
 
     // initialize the board to blank
-    game.draw(0, 0);
+    draw_games();
     
     if (use_ghost) {
         // draw initial ghost
@@ -646,7 +652,7 @@ int main(){
         piece.write();
         stack.write();
 
-        game.draw(0, 0);
+        draw_games();
 
         set_cursor_pos(height+1, 0);
 

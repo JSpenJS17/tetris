@@ -351,7 +351,7 @@ void Board::write(const unsigned int row, const unsigned int col){
     board.at(row).at(col) = filler;
 }
 
-void Board::draw(unsigned const int height_offset, bool last_col_no_space){
+void Board::draw(unsigned const int height_offset/*= 0*/, bool last_col_no_space/*= false*/, unsigned const int width_offset/*= 0*/){
     /* draws the updated parts of the board */
 
     //loop through game board
@@ -360,7 +360,7 @@ void Board::draw(unsigned const int height_offset, bool last_col_no_space){
             //if the current board doesn't match the old board at the row, col
             if (board.at(row).at(col) != oldboard.at(row).at(col)){
                 //set the cursor pos to the right spot
-                set_cursor_pos(row + height_offset, col*2);
+                set_cursor_pos(row + height_offset, col*2 + width_offset * 2);
                 //draw the pixel
                 if (last_col_no_space)
                     print_in_bounds(board.at(row).at(col), col);

@@ -123,7 +123,7 @@ class Board{
 
         void write(const unsigned int row, const unsigned int col);
 
-        void draw(unsigned const int height_offset, bool last_col_no_space);
+        void draw(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
  
         void clear_board(const bool redraw_whole_board);
 
