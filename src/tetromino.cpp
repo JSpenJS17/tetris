@@ -144,6 +144,7 @@ bool Tetromino::move_horizontal(bool left, const Stacked_Blocks& stack){
 }
 
 bool Tetromino::move_down(const Stacked_Blocks& stack, int amount/*= 1*/, bool test/*= false*/){
+    // Returns true on bad result, false on good result
     uint i;
     for (i = 0; i < blocks.size(); i++){
         Block block = blocks.at(i);
@@ -398,29 +399,18 @@ void Tetromino::draw_at_pos(const uint row, const uint col, bool erase/*= false*
     }
 }
 
-POS Tetromino::get_ghost_pos(const Stacked_Blocks& stack) {
-    vector<Block> temp_blocks = blocks;
-
-    // Assume all blocks can descend infinitely
-    bool can_descend = true;
-
-    while (can_descend) {
-        // loop through our blocks
-        for (auto& block : temp_blocks) {
-            // Temporarily move the block down
-            block.row++;
-
-            // Check if we hit something
-            if (stack.is_on(block) || (uint)block.row >= height) {
-                // we did, we're done
-                can_descend = false;
-                break;
-            }
+void Tetromino::set_ghost_pos(const Stacked_Blocks& stack) {
+    // move down until we hit the bottom
+    int move_amt = height;
+    bool move_result = false;
+    while (move_amt > 0) {
+        move_amt -= 1;
+        move_result = move_down(stack, move_amt, true);
+        if (move_result == false) {
+            break;
         }
     }
-    
-    // return the origin of the piece - 1 cause we overshot to check collision
-    return (POS){temp_blocks.at(0).row - 1, temp_blocks.at(0).col};
+    move_result = move_down(stack, move_amt);
 }
 
 Tetromino::operator bool() const{

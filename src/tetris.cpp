@@ -349,7 +349,7 @@ int main(){
     clock_t frame_end_time;
 
     bool hit_bottom = false;
-    int successful_move;
+    int successful_move; // 0 if INVALID, 1 if VALID, 2 if TSPIN_MINI, 3 if TSPIN
     bool reset_piece = false;
     bool has_held = false;
     bool hard_dropping = false;
@@ -365,7 +365,6 @@ int main(){
     string prev_clear = "nothing";
     string* prev_clear_ptr = &prev_clear;
     Tetromino ghost_piece;
-    POS ghost_pos;
 
     // initialize the board to blank
     game.draw(0, 0);
@@ -373,8 +372,8 @@ int main(){
     if (use_ghost) {
         // draw initial ghost
         ghost_piece = piece;
-        ghost_pos = piece.get_ghost_pos(stack);
-        ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, false, true);
+        ghost_piece.set_ghost_pos(stack);
+        ghost_piece.write();
     }
 
 
@@ -432,12 +431,12 @@ int main(){
                 if (!has_held){
                     lock_delay = lock_delay_reset;
                     //erase the current piece
-                    piece.write(true);
+                    piece.write(ERASE);
 
                     // erase the current ghost if we're using ghost
                     if (use_ghost) {
                         // remove old ghost
-                        ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
+                        ghost_piece.write(ERASE);
                     }
 
                     //if held_piece exists
@@ -542,15 +541,15 @@ int main(){
 
         if (use_ghost) {
             // if the move was a success, remove the old ghost
-            ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, true, true);
+            ghost_piece.write(ERASE);
             // hacky fix to make sure the ghost doesn't overwrite the piece
-            piece.draw_at_pos(piece.blocks.at(0).row, piece.blocks.at(0).col, false, true);
+            piece.write();
             // update the ghost
             ghost_piece = piece;
             // update the ghost position
-            ghost_pos = piece.get_ghost_pos(stack);
+            ghost_piece.set_ghost_pos(stack);
             // draw new ghost
-            ghost_piece.draw_at_pos(ghost_pos.row, ghost_pos.col, false, true);
+            ghost_piece.write();
         }
 
         // reset the made_move flag
@@ -622,6 +621,7 @@ int main(){
         }
 
         /* UPDATE DISPLAY */
+        piece.write();
         stack.write();
 
         game.draw(0, 0);

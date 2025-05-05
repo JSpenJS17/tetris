@@ -5,6 +5,8 @@
 struct Block;
 class Stacked_Blocks;
 
+#define ERASE true
+
 enum ROTATION_VALS {
     INVALID,
     VALID,
@@ -38,12 +40,12 @@ class Tetromino{
         void draw_at_pos(const uint row, const uint col, 
                          bool erase = false, bool write_not_draw = false);
 
-        POS get_ghost_pos(const Stacked_Blocks& stack);
+        void set_ghost_pos(const Stacked_Blocks& stack);
         
         explicit operator bool() const;
 
-        vector<Block> blocks;
-        char name;
+        vector<Block> blocks; // all four of our blocks
+        char name; // 't', 'l', 'j', etc.
 
     private:
         bool instantiated;
