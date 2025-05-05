@@ -371,7 +371,8 @@ int main(){
     clock_t frame_end_time;
 
     bool hit_bottom = false;
-    int successful_move; // 0 if INVALID, 1 if VALID, 2 if TSPIN_MINI, 3 if TSPIN
+    int successful_move; // 0 if INVALID, 1 if VALID
+    int t_spin = 0;      // 2 if TSPIN_MINI, 3 if TSPIN, 0 if NONE
     bool reset_piece = false;
     bool has_held = false;
     bool hard_dropping = false;
@@ -380,7 +381,6 @@ int main(){
     uint frame_counter = 0;
     uint current_lines_cleared = 0;
     uint reset_count = 0;
-    uint t_spin = 0;
     int lock_delay = lock_delay_reset;
     float gravity = (float) 1/60;
     char buffer[32];
@@ -512,11 +512,17 @@ int main(){
         }
 
 
+        if (successful_move == TSPIN || successful_move == TSPIN_MINI) {
+            // store t_spin status
+            t_spin = successful_move;
+            successful_move = VALID;
+        }
+
         /* 
-            * intentionally use previous hit_bottom val here
-            *    we want to know if we were just on the floor, 
-            *    not if we are on the floor after the movement
-            */
+         * intentionally use previous hit_bottom val here
+         *    we want to know if we were just on the floor, 
+         *    not if we are on the floor after the movement
+         */
         if (made_move && successful_move && hit_bottom) {
             // if we made a move and it was successful and we were just on the floor,
             // we reset lock delay
@@ -585,10 +591,10 @@ int main(){
             //clear lines and store how many were cleared
             current_lines_cleared = stack.clear_lines();
             clear_score_output();
-            t_spin = successful_move;
             score += calculate_score(current_lines_cleared, piece,
                                     stack, level, prev_clear_ptr, t_spin);
             line_total += current_lines_cleared;
+            t_spin = 0;
             
             if (level < 20)
                 level = line_total/10 + level_selected;
