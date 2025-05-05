@@ -132,11 +132,11 @@ void clear_score_output(){
 }
 
 uint calculate_score(const uint lines_cleared,
-                             const Tetromino& piece, 
-                             const Stacked_Blocks& stack, 
-                             const uint level, string* prev_clear,
-                             const int t_spin_type){
-    uint score = 0;
+                     const Tetromino& piece, 
+                     const Stacked_Blocks& stack, 
+                     const uint level, string* prev_clear,
+                     const int t_spin_type){
+    uint score = 0; 
     uint row_index = 13;
     string cur_clear = "break b2b";
     
@@ -151,12 +151,12 @@ uint calculate_score(const uint lines_cleared,
     set_cursor_pos(row_index++, width*2 + 1);
     switch (lines_cleared){
         case 0:
-            if (t_spin_type == 2){
+            if (t_spin_type == TSPIN_MINI){
                 cur_clear = "don't break b2b";
                 cout << "MINI T-SPIN";
                 score += 100 * level;
             }
-            else if (t_spin_type == 3){
+            else if (t_spin_type == TSPIN){
                 cur_clear = "don't break b2b";
                 cout << "T-SPIN";
                 score += 400 * level;
@@ -167,13 +167,13 @@ uint calculate_score(const uint lines_cleared,
             break;
 
         case 1:
-            if (t_spin_type == 2){
+            if (t_spin_type == TSPIN_MINI){
                 cur_clear = "b2b";
                 cout << "MINI T-SPIN";
                 set_cursor_pos(row_index++, width*2 + 1);
                 score += 200 * level;
             }
-            else if (t_spin_type == 3){
+            else if (t_spin_type == TSPIN){
                 cur_clear = "b2b";
                 cout << "T-SPIN";
                 set_cursor_pos(row_index++, width*2 + 1);
@@ -187,7 +187,7 @@ uint calculate_score(const uint lines_cleared,
             break;
 
         case 2:
-            if (t_spin_type == 3){
+            if (t_spin_type == TSPIN){
                 cur_clear = "b2b";
                 cout << "T-SPIN";
                 set_cursor_pos(row_index++, width*2 + 1);
@@ -201,7 +201,7 @@ uint calculate_score(const uint lines_cleared,
             break;
 
         case 3:
-            if (t_spin_type == 3){
+            if (t_spin_type == TSPIN){
                 cur_clear = "b2b";
                 cout << "T-SPIN";
                 set_cursor_pos(row_index++, width*2 + 1);
@@ -310,6 +310,28 @@ void sigint_handler(int dummy) {
     game_over_screen();
 }
 
+void pause_game() {
+    const char* paused = "  PAUSED  ";
+    Pixel previous_pix[strlen(paused)];
+
+    // put PAUSED display on the screen, save previous pixel values
+    for (int i = 0; i < strlen(paused); i++) {
+        previous_pix[i] = game.get_pix_at(5, i);
+        game.write(5, i, Pixel(paused[i], BLACK, WHITE));
+    }
+    game.draw(0, false);
+    fflush(stdout);
+    
+    while (wait_for_kb_input() != ESC);
+
+    // put old pixels back
+    for (int i = 0; i < strlen(paused); i++) {
+        game.write(5, i, previous_pix[i]);
+    }
+    game.draw(0, false);
+    fflush(stdout);
+}
+
 int main(){
     signal(SIGINT, sigint_handler);
     // in Linux only, we need to init the termios
@@ -412,13 +434,7 @@ int main(){
             case ESC:
                 key = -1;
                 // put the PAUSED display where score goes
-                clear_score_output();
-                color(BLACK, WHITE);
-                set_cursor_pos(13, width*2 + 1);
-                cout << "PAUSED";
-                fflush(stdout);
-                while (wait_for_kb_input() != ESC);
-                clear_score_output();
+                pause_game();
                 break;
 
             case 'z':

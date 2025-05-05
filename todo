@@ -1,1 +1,1 @@
-fix gameover screen bug where ^[[A appears
+t spins don't work if moved after t spin happens
