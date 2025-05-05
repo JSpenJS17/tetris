@@ -9,7 +9,6 @@ using namespace std;
 #include <stdio.h>
 #include <cmath>
 
-
 #ifdef _WIN32
 // Windows specific includes
 #define WIN32_LEAN_AND_MEAN
@@ -63,6 +62,11 @@ const int ENTER = 13;
 // Linux key codes
 const int ENTER = 10;
 #endif
+
+typedef struct POS {
+        int row;
+        int col;
+} POS;
 
 // Linux and windows shared code
 const int SPACE = 32, ESC = 27,
@@ -141,4 +145,3 @@ class Board{
 void draw_pixel(Pixel pix);
 
 #endif
-
