@@ -6,6 +6,7 @@
 #include <csignal>
 #include "engine.hpp"
 #include "tetromino.hpp"
+#include "blocks.hpp"
 
 #ifdef SCOREBOARD
 #include "scoreboard/scoreboard.hpp"
