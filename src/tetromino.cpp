@@ -4,7 +4,7 @@
 Tetromino::Tetromino(const char type){
     instantiated = true;
     name = type;
-    angle = 0;
+    angle = R0;
 
     int not_i_shamt[8][5][2] = {
                         {{0, 0}, {-1, 0}, {-1,  1}, {0, -2}, {-1, -2}},
@@ -179,8 +179,9 @@ void Tetromino::write(bool erase/*= false*/){
 }
 
 int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
+    // rotation using the super rotation system. see 2009 tetris guideline pages 36-37
     if (name == 'o')
-        return 1;
+        return VALID;
 
     //temp block vector to store rotated blocks
     vector<Block> rotation = blocks;
@@ -213,33 +214,33 @@ int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
         //it's the only piece like this.
         if (name == 'i'){
             if (clockwise) {
-                switch(angle){
-                    case 3:
-                        *col = *col + 1;
-                        break;
-                    case 0:
+                switch(angle) {
+                    case R0:
                         *row = *row + 1;
                         break;
-                    case 1:
+                    case R90:
                         *col = *col - 1;
                         break;
-                    case 2:
+                    case R180:
                         *row = *row - 1;
+                        break;
+                    case R270:
+                    *col = *col + 1;
                         break;
                 }
-            }
+            } 
             else {
-                switch(angle){
-                    case 0:
+                switch(angle) {
+                    case R0:
                         *col = *col - 1;
                         break;
-                    case 1:
+                    case R90:
                         *row = *row - 1;
                         break;
-                    case 2:
+                    case R180:
                         *col = *col + 1;
                         break;
-                    case 3:
+                    case R270:
                         *row = *row + 1;
                         break;
                 }
@@ -260,14 +261,16 @@ int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
     // this depends on angle and must be hardcoded
     
     uint trans_set;
-    if (clockwise){
-        trans_set = get_trans_set(angle, (angle+1) % 4);
+    if (clockwise) { // rotate 90 degrees clockwise
+        trans_set = get_trans_set(angle, (angle+1) % NUM_ANGLES);
     }
-    else{
-        if (angle == 0)
-            trans_set = get_trans_set(angle, 3);
-        else
+    else { // rotate 90 degrees counterclockwise
+        if (angle == R0) {
+            trans_set = get_trans_set(angle, R270);
+        }
+        else {
             trans_set = get_trans_set(angle, angle-1);
+        }
     }
     bool valid_rotation;
     int trans_index;
@@ -315,7 +318,7 @@ int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
     //finally, if there was no valid rotation available
     if (!valid_rotation){
         //return that there wasn't
-        return 0;
+        return INVALID;
     }
 
     //we know there was a valid rotation, so:
@@ -323,13 +326,15 @@ int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
     //update the angle
     if (clockwise){
         angle++;
-        angle %= 4;
+        angle %= NUM_ANGLES;
     } 
     else {
-        if (angle == 0)
-            angle = 3;
-        else
+        if (angle == R0) {
+            angle = R270;
+        }
+        else {
             angle--;
+        }
     }
     
     //erase the old piece
@@ -346,8 +351,9 @@ int Tetromino::rotate(const bool clockwise, const Stacked_Blocks& stack){
     if (name == 't'){
         return t_spin_check(trans_index, stack);
     }
-    else
-        return 1;
+    else {
+        return VALID;
+    }
 
 }
 
@@ -423,32 +429,34 @@ Tetromino::operator bool() const{
 
 // Private:
 uint Tetromino::get_trans_set(const int from_angle, const int dest_angle){
+    // get the correct translation set depending on which angles we're going between
+    // this looks like kevin stone code
     switch (from_angle){
-        case 0:
-            if (dest_angle == 1)
+        case R0:
+            if (dest_angle == R90)
                 return 0;
-            else if (dest_angle == 3)
+            else if (dest_angle == R270)
                 return 7;
             break;
 
-        case 1:
-            if (dest_angle == 0)
+        case R90:
+            if (dest_angle == R0)
                 return 1;
-            else if (dest_angle == 2)
+            else if (dest_angle == R180)
                 return 2;
             break;
 
-        case 2:
-            if (dest_angle == 1)
+        case R180:
+            if (dest_angle == R90)
                 return 3;
-            else if (dest_angle == 3)
+            else if (dest_angle == R270)
                 return 4;
             break;
 
-        case 3:
-            if (dest_angle == 2)
+        case R270:
+            if (dest_angle == R180)
                 return 5;
-            else if (dest_angle == 0)
+            else if (dest_angle == R0)
                 return 6;
             break;
     }
@@ -467,7 +475,7 @@ uint Tetromino::t_spin_check(int trans_index, const Stacked_Blocks& stack){
     //if we used the 5th translation on this t piece, it's a
     //guaranteed regular T spin
     if (trans_index == 4)
-        return 3;
+        return TSPIN;
 
     //I figure that if we take the corners of the 3x3 of the t piece,
     //we can check if those are walls/on the stack.
@@ -487,11 +495,11 @@ uint Tetromino::t_spin_check(int trans_index, const Stacked_Blocks& stack){
     const bool temp_c = c;
     const bool temp_d = d;
     switch (angle) {
-        case 0:
+        case R0:
             //already aligned correctly
             //a -> b -> d -> c
             break;
-        case 1:
+        case R90:
             //rotated 90 degrees clockwise.
             //c -> a -> b -> d
             a = temp_b;
@@ -499,7 +507,7 @@ uint Tetromino::t_spin_check(int trans_index, const Stacked_Blocks& stack){
             d = temp_c;
             c = temp_a;
             break;
-        case 2:
+        case R180:
             //rotated 180 degrees
             //d -> c -> a -> b
             a = temp_d;
@@ -507,7 +515,7 @@ uint Tetromino::t_spin_check(int trans_index, const Stacked_Blocks& stack){
             d = temp_a;
             c = temp_b;
             break;
-        case 3:
+        case R270:
             //rotated 270 degrees clockwise
             //b -> d -> c -> a
             a = temp_c;
@@ -518,12 +526,12 @@ uint Tetromino::t_spin_check(int trans_index, const Stacked_Blocks& stack){
     }
     
     if (a && b && (c || d))
-        return 3;
+        return TSPIN;
     
     if (c && d && (a || b))
-        return 2;
+        return TSPIN_MINI;
     
-    return 1;
+    return VALID;
 }
 
 Bag::Bag(){

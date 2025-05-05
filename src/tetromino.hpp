@@ -5,6 +5,21 @@
 struct Block;
 class Stacked_Blocks;
 
+enum ROTATION_VALS {
+    INVALID,
+    VALID,
+    TSPIN_MINI,
+    TSPIN
+};
+
+enum ANGLES {
+    R0,     //   0 degrees clockwise
+    R90,    //  90 degrees clockwise
+    R180,   // 180 degrees clockwise
+    R270,   // 270 degrees clockwise
+    NUM_ANGLES
+};
+
 class Tetromino{
     public:
         Tetromino(const char type);
@@ -32,7 +47,7 @@ class Tetromino{
 
     private:
         bool instantiated;
-        int angle;
+        int angle; // angle of tetromino 
         int shamts[8][5][2];
         uint get_trans_set(const int from_angle, const int dest_angle);
 
