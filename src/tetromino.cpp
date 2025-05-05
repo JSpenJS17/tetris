@@ -401,16 +401,7 @@ void Tetromino::draw_at_pos(const uint row, const uint col, bool erase/*= false*
 
 void Tetromino::set_ghost_pos(const Stacked_Blocks& stack) {
     // move down until we hit the bottom
-    int move_amt = height;
-    bool move_result = false;
-    while (move_amt > 0) {
-        move_amt -= 1;
-        move_result = move_down(stack, move_amt, true);
-        if (move_result == false) {
-            break;
-        }
-    }
-    move_result = move_down(stack, move_amt);
+    while (!move_down(stack)); // while our moves are still good
 }
 
 Tetromino::operator bool() const{
