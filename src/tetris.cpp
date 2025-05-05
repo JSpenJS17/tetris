@@ -296,15 +296,16 @@ void game_over_screen() {
     print_scoreboard();
 
     cout << "Press enter to exit." << endl;
-    while (wait_for_kb_input() != ENTER) {}
+    char key = -1;
+    while (key != ENTER) {
+        key = wait_for_kb_input();
+    }
+
     reset_everything();
     exit(0);
 }
 
 void sigint_handler(int dummy) {
-    // should reset everything on sigint
-    reset_everything();
-
     // act like it's a game over
     game_over_screen();
 }
