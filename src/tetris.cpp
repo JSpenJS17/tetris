@@ -101,7 +101,8 @@ int main(){
         multiplayer();
     }
 
-    reset_everything();    
+    reset_everything();
+    clear_screen();
 
     return 0;
 }

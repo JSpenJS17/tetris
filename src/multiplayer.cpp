@@ -50,6 +50,7 @@ void multiplayer() {
     string prev_clear = "nothing";
     string* prev_clear_ptr = &prev_clear;
     Tetromino ghost_piece;
+    level = 0; // permanent in multiplayer
 
     // initialize the board to blank
     draw_games();
@@ -250,8 +251,6 @@ void multiplayer() {
             line_total += current_lines_cleared;
             t_spin = 0;
             
-            if (level < 20)
-                level = line_total/10 + gamedata.starting_level;
             //change current piece to the previous next one
             piece = next_piece;
             // new piece is written later
@@ -301,20 +300,6 @@ void multiplayer() {
         stack.write();
 
         draw_games();
-
-        set_cursor_pos(height+1, 0);
-
-        color(GRAY, WHITE);
-        sprintf(buffer, "%7d", level);
-        cout << "Level: " << buffer << endl;
-
-        sprintf(buffer, "%7d", line_total);
-        cout << "Lines: " << buffer << endl;
-        
-        sprintf(buffer, "%7lu", score);
-        cout << "Score: " << buffer;
-        
-        color(16, 16);
 
         frame_end_time = clock();
         int total_time = (frame_end_time - frame_start_time) / (CLOCKS_PER_SEC / 1000);
