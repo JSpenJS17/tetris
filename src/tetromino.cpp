@@ -172,10 +172,11 @@ bool Tetromino::move_down(const Stacked_Blocks& stack, int amount/*= 1*/, bool t
 void Tetromino::write(bool erase/*= false*/){
     for (uint i = 0; i < blocks.size(); i++){
         Block block = blocks.at(i);
-        if (erase)
-            game.write(block.row, block.col, bg);
-        else
-            game.write(block.row, block.col, block.face);
+        Pixel draw_pix = erase ? bg : block.face;
+        if (block.row >= 0)
+        {
+            game.write(block.row, block.col, draw_pix);
+        }
     }
 }
 
@@ -387,7 +388,10 @@ void Tetromino::draw_at_pos(const uint row, const uint col, bool erase/*= false*
             if (write_not_draw){
                 // should check bounds here, can't write outside of the Board
                 if (block.row < (int)height && block.col < (int)width) {
-                    game.write(block.row, block.col, draw_pix);
+                    if (block.row >= 0)
+                    {
+                        game.write(block.row, block.col, draw_pix);
+                    }
                 }
             } else {
                 draw_pixel(draw_pix);

@@ -17,7 +17,7 @@ void Block::set_row_relative(const int change){
 }
 
 bool Block::is_out_of_bounds(){
-    return (row < 0 || col < 0 || col >= (int)width || row >= (int)height);
+    return (col < 0 || col >= (int)width || row >= (int)height);
 }
 
 bool Block::operator==(const Block& other) const {
@@ -110,12 +110,12 @@ void Stacked_Blocks::clear_row(const uint row){
         Block block = blocks.at(i);
         if (block.row == (int)row){
             remove_block(i);
-            if (block.row > 0)
+            if (block.row >= 0)
             {
                 game.write(block.row, block.col, bg);
             }
         } else if (block.row < (int)row) {
-            if (block.row > 0)
+            if (block.row >= 0)
             {
                 game.write(block.row, block.col, bg);
             }
@@ -128,7 +128,7 @@ void Stacked_Blocks::clear_row(const uint row){
 }
 
 void Stacked_Blocks::create_garbage(int num_lines) {
-    if (num_lines < 0) {
+    if (num_lines <= 0) {
         return;
     }
     // creates a number of garbage lines at the bottom of the stack
@@ -136,7 +136,7 @@ void Stacked_Blocks::create_garbage(int num_lines) {
 
     // move up everyone else
     for (auto & block : blocks) {
-        if (block.row > 0)
+        if (block.row >= 0)
         {
             game.write(block.row, block.col, bg);
         }
