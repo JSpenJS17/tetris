@@ -8,6 +8,7 @@ const int height = 20;
 const int lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
+Board other_game = game;
 Board partner_game = Board(width, height, bg); // displayed to the right
 long score = 0;
 GameData gamedata = GameData();

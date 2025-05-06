@@ -39,6 +39,7 @@ extern const int height;
 extern const int lock_delay_reset;
 extern Pixel bg;
 extern Board game;
+extern Board other_game;
 extern long score;
 extern GameData gamedata;
 extern GAMETYPE game_type;

@@ -1,7 +1,5 @@
 #include "multiplayer.hpp"
 
-Board other_game = game;
-
 void draw_games() {
     // other_game = game; // substitute for thread getting their actual game data
     // other_game.draw(0, false, width*3);

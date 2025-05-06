@@ -145,6 +145,8 @@ class Board{
 
         vector<PosPixel>* get_changes() { return &changes; } // changes updated in draw()
 
+        void set_changes(vector<PosPixel>* new_changes) { changes = *new_changes; }
+
     private:
         Pixel filler;
         unsigned int len;

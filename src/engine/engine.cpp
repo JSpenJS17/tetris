@@ -384,11 +384,13 @@ void Board::update_changes() {
         }
     }
     oldboard = board;
+    color(16, 16);
 }
 
 void Board::draw_from_changes(vector<PosPixel>* changes_vec, unsigned const int height_offset/* = 0*/, 
                               bool last_col_no_space/* = false*/, unsigned const int width_offset/* = 0*/) {
     /* draws the changes from the provided changes vector */
+    /* Guaranteed to only read from changes vector */
     for (auto& change : *changes_vec) {
         set_cursor_pos(change.row + height_offset, change.col*2 + width_offset * 2);
         if (last_col_no_space) {
