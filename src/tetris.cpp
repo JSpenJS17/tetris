@@ -77,9 +77,11 @@ void reset_everything() {
 
 void sigint_handler(int dummy) {
     // act like it's a game over
-    game_over_screen();
-    reset_everything();
-    exit(0);
+    if (gamedata.gametype != MULTIPLAYER) {
+        game_over_screen();
+        reset_everything();
+        exit(0);
+    }
 }
 
 int main(){

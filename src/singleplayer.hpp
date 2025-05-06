@@ -15,7 +15,7 @@ void clear_score_output();
 
 void game_over_screen();
 
-void draw_games();
+void draw_game();
 
 void pause_game();
 

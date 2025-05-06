@@ -176,7 +176,7 @@ void game_over_screen() {
     }
 }
 
-void draw_games() {
+void draw_game() {
     game.draw();
     fflush(stdout);
 }
@@ -190,7 +190,7 @@ void pause_game() {
         previous_pix[i] = game.get_pix_at(5, i);
         game.write(5, i, Pixel(paused[i], BLACK, WHITE));
     }
-    draw_games();
+    draw_game();
     
     while (wait_for_kb_input() != ESC);
 
@@ -198,7 +198,7 @@ void pause_game() {
     for (int i = 0; i < strlen(paused); i++) {
         game.write(5, i, previous_pix[i]);
     }
-    draw_games();
+    draw_game();
 }
 
 void singleplayer(){
@@ -245,7 +245,7 @@ void singleplayer(){
     Tetromino ghost_piece;
 
     // initialize the board to blank
-    draw_games();
+    draw_game();
     
     if (gamedata.use_ghost) {
         // draw initial ghost
@@ -502,7 +502,7 @@ void singleplayer(){
         piece.write();
         stack.write();
 
-        draw_games();
+        draw_game();
 
         set_cursor_pos(height+1, 0);
 
