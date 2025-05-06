@@ -112,6 +112,13 @@ struct Pixel{
     friend bool operator!=(Pixel&me, Pixel& other);
 };
 
+struct PosPixel {
+        PosPixel(unsigned int row, unsigned int col, Pixel face) : 
+                row(row), col(col), face(face) {}
+        unsigned int row, col;
+        Pixel face;
+};
+
 class Board{
     public:
         //board constructor
@@ -127,9 +134,16 @@ class Board{
 
         void draw(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
  
+        void draw_from_changes(vector<PosPixel>* changes, unsigned const int height_offset = 0, bool last_col_no_space = false, 
+                                unsigned const int width_offset = 0);
+
+        void update_changes();
+
         void clear_board(const bool redraw_whole_board);
 
         Pixel get_pix_at(unsigned const int row, unsigned const int col);
+
+        vector<PosPixel>* get_changes() { return &changes; } // changes updated in draw()
 
     private:
         Pixel filler;
@@ -138,6 +152,7 @@ class Board{
         vector<vector<Pixel> > freshboard;
         vector<vector<Pixel> > oldboard;
         vector<vector<Pixel> > board;
+        vector<PosPixel> changes;
         
         void print_in_bounds(Pixel pix, unsigned const int col);
 

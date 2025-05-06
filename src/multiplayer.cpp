@@ -3,13 +3,14 @@
 Board other_game = game;
 
 void draw_games() {
-    other_game = game; // substitute for thread getting their actual game data
-    other_game.draw(0, false, width*3);
-    game.draw();
+    // other_game = game; // substitute for thread getting their actual game data
+    // other_game.draw(0, false, width*3);
+    game.update_changes();
+    vector<PosPixel>* changes = game.get_changes();
+    game.draw_from_changes(changes);
+    // game.draw();
     fflush(stdout);
 }
-
-
 
 int calculate_sent_lines() {
     return 2;
