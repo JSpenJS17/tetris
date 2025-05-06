@@ -8,10 +8,20 @@ Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
 Board partner_game = Board(width, height, bg); // displayed to the right
 ulong score = 0;
-GameData gamedata;
+GameData gamedata = GameData();
 uint line_total = 0;
-int level_selected = 0;
 int level = 0;
+
+void main_menu() {
+    // modifies global gamedata based on menu inputs
+    Menu main_menu = Menu();
+    main_menu.add_item(MenuItem("Single Player", SELECT));
+    main_menu.add_item(MenuItem("Multi Player ", SELECT));
+    main_menu.display(1);
+    gamedata.gametype = main_menu.items[0].get_selected() ? SINGLEPLAYER : MULTIPLAYER;
+    gamedata.starting_level = 0;
+    gamedata.use_ghost = true;
+}
 
 void clear_score_output(){
     //clear previous score output
@@ -171,7 +181,7 @@ void game_over_screen() {
     cout << endl << "Game Over" << endl;
 
     color(WHITE, BLACK);
-    sprintf(buffer, "%7d", level_selected);
+    sprintf(buffer, "%7d", gamedata.starting_level);
     cout << "Starting Level: " << buffer << endl;
     
     sprintf(buffer, "%7d", level);
@@ -238,12 +248,10 @@ int main(){
     //get a random seed
     srand(time(NULL));
 
-    level_selected = main_menu();
-    bool use_ghost = level_selected >= 0;
-    level_selected = abs(level_selected);
+    main_menu();
 
     clear_screen();
-    level = level_selected;
+    level = gamedata.starting_level;
 
     Stacked_Blocks stack;
     Bag bag;
@@ -288,7 +296,7 @@ int main(){
     // initialize the board to blank
     draw_games();
     
-    if (use_ghost) {
+    if (gamedata.use_ghost) {
         // draw initial ghost
         ghost_piece = piece;
         ghost_piece.set_ghost_pos(stack);
@@ -347,7 +355,7 @@ int main(){
                     piece.write(ERASE);
 
                     // erase the current ghost if we're using ghost
-                    if (use_ghost) {
+                    if (gamedata.use_ghost) {
                         // remove old ghost
                         ghost_piece.write(ERASE);
                     }
@@ -458,7 +466,7 @@ int main(){
 
         /* GHOST PIECE */
 
-        if (use_ghost) {
+        if (gamedata.use_ghost) {
             // if the move was a success, remove the old ghost
             ghost_piece.write(ERASE);
             // hacky fix to make sure the ghost doesn't overwrite the piece
@@ -494,7 +502,7 @@ int main(){
             t_spin = 0;
             
             if (level < 20)
-                level = line_total/10 + level_selected;
+                level = line_total/10 + gamedata.starting_level;
             //change current piece to the previous next one
             piece = next_piece;
             // new piece is written later

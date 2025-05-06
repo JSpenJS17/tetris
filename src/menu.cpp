@@ -83,7 +83,7 @@ void set_selected() {
 }
 Menu::Menu(){}
 
-void Menu::add_option(MenuItem option) {
+void Menu::add_item(MenuItem option) {
     items.push_back(option);
 }
 
@@ -125,8 +125,8 @@ void Menu::display(const unsigned int offset) {
     
                 /* THIS IS WHERE WE RETURN FROM THE FUNCTION */
                 case ESC:
-                    // I know this is terrible but I'm too deep
-                    return;
+                    // I know this is terrible but I'm in too deep
+                    goto ret;
             }
     
             if (menu_idx < 0) {
@@ -185,6 +185,7 @@ void Menu::display(const unsigned int offset) {
     
         } else if (selection->get_type() == STRING) {
             char buffer[MAX_STRING_SIZE];
+            buffer[0] = '\0';
             unsigned int string_idx = 0;
             
             set_cursor_pos(offset + menu_idx, item_text_size);
@@ -238,7 +239,7 @@ void Menu::display(const unsigned int offset) {
         
         } else if (selection->get_type() == SELECT) {
             selection->set_selected();
-            return; // special case for SELECT, should just return out
+            goto ret;
 
         } else if (selection->get_type() == BOOLEAN) {
             selection->set_selected();
@@ -247,4 +248,9 @@ void Menu::display(const unsigned int offset) {
             fflush(stdout);
         }
     }
+
+ret: // hear me out, this is smart
+    show_cursor(false);
+    color(16, 16);
+    return;
 }

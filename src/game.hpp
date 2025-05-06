@@ -7,6 +7,7 @@
 #include "engine.hpp"
 #include "tetromino.hpp"
 #include "blocks.hpp"
+#include "menu.hpp"
 
 #ifdef SCOREBOARD
 #include "scoreboard/scoreboard.hpp"
@@ -30,7 +31,7 @@ typedef struct GameData {
     GameData(){}
     GAMETYPE gametype;
     int starting_level;
-    bool ghost;
+    bool use_ghost;
 } GameData;
 
 extern const uint width;
@@ -39,9 +40,9 @@ extern const uint lock_delay_reset;
 extern Pixel bg;
 extern Board game;
 extern ulong score;
+extern GameData gamedata;
 extern GAMETYPE game_type;
 extern uint line_total;
-extern int level_selected;
 extern int level;
 
 #endif

@@ -49,7 +49,7 @@ class Menu {
     public:
         Menu();
 
-        void add_option(MenuItem option);
+        void add_item(MenuItem option);
 
         void display(const unsigned int offset);
 

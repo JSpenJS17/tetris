@@ -72,7 +72,7 @@ typedef struct POS {
 
 // Linux and windows shared code
 const int SPACE = 32, ESC = 27,
-        UP = -1, DOWN = -2, LEFT = -3, RIGHT = -4;
+        UP = -10, DOWN = -20, LEFT = -30, RIGHT = -40;
 
 void init_engine();
 void close_engine();
