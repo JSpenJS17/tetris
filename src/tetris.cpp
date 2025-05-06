@@ -3,15 +3,15 @@
 #include "multiplayer.hpp"
 
 // externs
-const uint width = 10;
-const uint height = 20;
-const uint lock_delay_reset = 750;
+const int width = 10;
+const int height = 20;
+const int lock_delay_reset = 750;
 Pixel bg = Pixel('-', LIGHT_GRAY, LIGHT_GRAY);
 Board game = Board(width, height, bg);
 Board partner_game = Board(width, height, bg); // displayed to the right
-ulong score = 0;
+long score = 0;
 GameData gamedata = GameData();
-uint line_total = 0;
+int line_total = 0;
 int level = 0;
 
 void main_menu() {

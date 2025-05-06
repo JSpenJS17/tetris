@@ -32,13 +32,15 @@ class Stacked_Blocks{
 
         void write();
 
-        bool is_on(const uint row, const uint col) const;
+        bool is_on(const int row, const int col) const;
 
         bool is_on(const Block& block) const;
 
         uint clear_lines();
 
         bool is_empty() const;
+
+        void create_garbage(int num_lines);
 
     private:
         vector<Block> blocks;

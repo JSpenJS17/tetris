@@ -24,6 +24,16 @@ void print_scoreboard() {
     #endif
 }
 
+void clear_score_output(){
+    //clear previous score output
+    color(16, 16);
+    for (int i = 0; i < 5; i++){
+        set_cursor_pos(13+i, width * 2);
+        cout << "              ";
+    }
+    color(16, 16);
+}
+
 uint calculate_score(const uint lines_cleared,
                      const Tetromino& piece, 
                      const Stacked_Blocks& stack, 
@@ -131,17 +141,6 @@ uint calculate_score(const uint lines_cleared,
 
     color(16, 16);
     return score;
-}
-
-
-void clear_score_output(){
-    //clear previous score output
-    color(16, 16);
-    for (int i = 0; i < 5; i++){
-        set_cursor_pos(13+i, width * 2);
-        cout << "              ";
-    }
-    color(16, 16);
 }
 
 void game_over_screen() {

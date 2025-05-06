@@ -34,15 +34,15 @@ typedef struct GameData {
     bool use_ghost = true;
 } GameData;
 
-extern const uint width;
-extern const uint height;
-extern const uint lock_delay_reset;
+extern const int width;
+extern const int height;
+extern const int lock_delay_reset;
 extern Pixel bg;
 extern Board game;
-extern ulong score;
+extern long score;
 extern GameData gamedata;
 extern GAMETYPE game_type;
-extern uint line_total;
+extern int line_total;
 extern int level;
 
 #endif

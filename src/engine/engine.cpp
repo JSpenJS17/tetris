@@ -7,7 +7,7 @@ float dist(const int x1, const int y1, const int x2, const int y2){
 }
 
 int rand_int(int limit) {
-    //return a random integer between 0 and the limit.
+    //return a random integer between 0 and the limit INCLUSIVE.
     int divisor = RAND_MAX/(limit+1); 
     int retval;
 

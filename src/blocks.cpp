@@ -40,19 +40,21 @@ void Stacked_Blocks::remove_block(const uint index){
 }
 
 void Stacked_Blocks::write(){
-    for (uint i = 0; i < blocks.size(); i++){
+    for (int i = 0; i < (int)blocks.size(); i++){
         Block block = blocks.at(i);
-        game.write(block.row, block.col, block.face);
+        if (block.row >= 0) {
+            game.write(block.row, block.col, block.face);
+        }
     }
 }
 
-bool Stacked_Blocks::is_on(const uint row, const uint col) const{
+bool Stacked_Blocks::is_on(const int row, const int col) const{
     if (row >= height || col >= width)
         return true;
 
-    for (uint i = 0; i < blocks.size(); i++){
+    for (int i = 0; i < (int)blocks.size(); i++){
         Block stack_block = blocks.at(i);
-        if ((int)row == stack_block.row && (int)col == stack_block.col)
+        if (row == stack_block.row && col == stack_block.col)
             return true;
     }
 
@@ -70,16 +72,16 @@ bool Stacked_Blocks::is_on(const Block& block) const{
 }
 
 uint Stacked_Blocks::clear_lines(){
-    uint row;
+    int row;
     vector<Block> in_row;
     uint cleared_rows = 0;
 
     // loop through all the rows
-    for (row = 0; row < height; row++){
+    for (row = 0; row < (int)height; row++){
         // loop through all the blocks
-        for (uint i = 0; i < blocks.size(); i++){
+        for (int i = 0; i < (int)blocks.size(); i++){
             // if the block is in the current row
-            if (blocks.at(i).row == (int)row)
+            if (blocks.at(i).row == row)
                 // add it to the in_row vector
                 in_row.push_back(blocks.at(i));
         }
@@ -108,13 +110,50 @@ void Stacked_Blocks::clear_row(const uint row){
         Block block = blocks.at(i);
         if (block.row == (int)row){
             remove_block(i);
-            game.write(block.row, block.col, bg);
+            if (block.row > 0)
+            {
+                game.write(block.row, block.col, bg);
+            }
         } else if (block.row < (int)row) {
-            game.write(block.row, block.col, bg);
+            if (block.row > 0)
+            {
+                game.write(block.row, block.col, bg);
+            }
             blocks.at(i).set_row_relative(1);
             i++;
         } else {
             i++;
+        }
+    }
+}
+
+void Stacked_Blocks::create_garbage(int num_lines) {
+    if (num_lines < 0) {
+        return;
+    }
+    // creates a number of garbage lines at the bottom of the stack
+    int hole_col = rand_int(width);
+
+    // move up everyone else
+    for (auto & block : blocks) {
+        if (block.row > 0)
+        {
+            game.write(block.row, block.col, bg);
+        }
+        block.row -= num_lines; // need to add space above
+    }
+
+    Pixel dead_pix = Pixel('X', GRAY, GRAY);
+    for (int row = height-1; row > height - num_lines - 1; row--) {
+        if (row > 0) {
+            for (int col = 0; col < width; col++) {
+                if (col == hole_col) {
+                    game.write(row, col, bg);
+                }
+                else {
+                    blocks.push_back(Block(row, col, dead_pix));
+                }
+            }
         }
     }
 }

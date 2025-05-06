@@ -9,6 +9,12 @@ void draw_games() {
     fflush(stdout);
 }
 
+
+
+int calculate_sent_lines() {
+    return 2;
+}
+
 void multiplayer() {
     clear_screen();
     Stacked_Blocks stack;
@@ -36,6 +42,7 @@ void multiplayer() {
     bool hit_bottom = false;
     int successful_move; // 0 if INVALID, 1 if VALID
     int t_spin = 0;      // 2 if TSPIN_MINI, 3 if TSPIN, 0 if NONE
+    int sent_lines = 0;
     bool reset_piece = false;
     bool has_held = false;
     bool hard_dropping = false;
@@ -248,8 +255,12 @@ void multiplayer() {
 
             //clear lines and store how many were cleared
             current_lines_cleared = stack.clear_lines();
+            sent_lines = current_lines_cleared; // temporary
             line_total += current_lines_cleared;
             t_spin = 0;
+
+            // add any sent garbage to the stack
+            stack.create_garbage(9);
             
             //change current piece to the previous next one
             piece = next_piece;
