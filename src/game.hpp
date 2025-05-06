@@ -4,10 +4,10 @@
 #include <limits>
 #include <string.h>
 #include <csignal>
-#include "engine.hpp"
+#include "engine/engine.hpp"
 #include "tetromino.hpp"
 #include "blocks.hpp"
-#include "menu.hpp"
+#include "engine/menu.hpp"
 
 #ifdef SCOREBOARD
 #include "scoreboard/scoreboard.hpp"

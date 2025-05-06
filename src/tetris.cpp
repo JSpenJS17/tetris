@@ -14,10 +14,41 @@ int level = 0;
 
 void main_menu() {
     // modifies global gamedata based on menu inputs
+    color(16, 16);
+    cout << "           ";
+    
+    const int title_bg = WHITE;
+
+    color(title_bg, LIGHT_RED);
+    cout << "T ";
+    color(title_bg, YELLOW);
+    cout << "E ";
+    color(title_bg, LIGHT_GREEN);
+    cout << "T ";
+    color(title_bg, CYAN);
+    cout << "R ";
+    color(title_bg, BLUE);
+    cout << "I ";
+    color(title_bg, PURPLE);
+    cout << "S";
+
+    color(16, 16);
+    cout << "           " << endl << endl;
+
+    color(WHITE, BLACK);
+    cout << "Controls:" << endl;
+    cout << "    Left/Right to move" << endl;
+    cout << "    Down to soft drop" << endl;
+    cout << "    Space to hard drop" << endl;
+    cout << "    Up to rotate clockwise" << endl;
+    cout << "    Z to rotate counter clockwise" << endl;
+    cout << "    C to hold a piece" << endl;
+    cout << "    ESC to pause" << endl << endl;
+
     Menu main_menu = Menu();
-    main_menu.add_item(MenuItem("Single Player", SELECT));
-    main_menu.add_item(MenuItem("Multi Player ", SELECT));
-    main_menu.display(1);
+    main_menu.add_item(MenuItem("-Single Player", SELECT));
+    main_menu.add_item(MenuItem("-Multi Player ", SELECT));
+    main_menu.display(11);
     gamedata.gametype = main_menu.items[0].get_selected() ? SINGLEPLAYER : MULTIPLAYER;
     gamedata.starting_level = 0;
     gamedata.use_ghost = true;

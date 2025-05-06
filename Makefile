@@ -4,7 +4,6 @@ ifeq ($(OS), Windows_NT)
 	OS_TYPE := Windows
 else
 	UNAME_S := $(shell uname -s)
-
 	ifeq ($(UNAME_S), Linux)
 		OS_TYPE := Linux
 	else ifeq ($(UNAME_S), Darwin)
@@ -16,67 +15,61 @@ endif
 
 $(info Detected OS: $(OS_TYPE))
 
-SRC_DIR := src
-SB_DIR := $(SRC_DIR)/scoreboard
-OBJ_DIR := $(SRC_DIR)/obj
-SB_SRC := $(wildcard $(SB_DIR)/*.cpp)
-SB_HDR := $(wildcard $(SB_DIR)/*.hpp)
-SRC := $(wildcard $(SRC_DIR)/*.cpp)
-HDR := $(wildcard $(SRC_DIR)/*.hpp)
-
-ALL_SRC := $(SRC) $(SB_SRC)
-ALL_HDR := $(HDR) $(SB_HDR)
-OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC)) \
-       $(patsubst $(SB_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SB_SRC))
-OBJ_NOSB := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%_nosb.o, $(SRC))
-
+# Compiler and flags
 CC := g++
 CFLAGS := -g -O2
 LIBS := -lcurl
 DEFS := -DSCOREBOARD
 
+# Directories
+SRC_DIR := src
+SB_DIR := $(SRC_DIR)/scoreboard
+ENG_DIR := $(SRC_DIR)/engine
+OBJ_DIR := obj
+
+# Platform-specific settings
 ifeq ($(OS_TYPE), Windows)
 	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 	LIBS += -I./include -L./lib
 	FORCE := -Force
 	TARGET := bin/windows/tetris
-	TARGET_NOSB := bin/windows/tetris_offline
 else
 	MKDIR = mkdir -p $(1)
 	FORCE := -f
 	TARGET := tetris
-	TARGET_NOSB := tetris_offline
 endif
 
-# Default target includes scoreboard
+# Source files
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+SB_FILES  := $(wildcard $(SB_DIR)/*.cpp)
+ENG_FILES := $(wildcard $(ENG_DIR)/*.cpp)
+
+# Object file mappings (flattened into obj/)
+OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) \
+       $(patsubst $(SB_DIR)/%.cpp,$(OBJ_DIR)/scoreboard_%.o,$(SB_FILES)) \
+       $(patsubst $(ENG_DIR)/%.cpp,$(OBJ_DIR)/engine_%.o,$(ENG_FILES))
+
+# Default target
 all: $(TARGET)
 
-# No-scoreboard target
-offline: DEFS := 
-offline: LIBS :=
-offline: $(TARGET_NOSB)
-
-# Final executable target
-$(TARGET): $(ALL_HDR) $(OBJ)
+# Link all objects
+$(TARGET): $(OBJ)
 	$(CC) $(OBJ) $(LIBS) $(DEFS) -o $(TARGET)
 
-$(TARGET_NOSB): $(HDR) $(OBJ_NOSB)
-	$(CC) $(OBJ_NOSB) $(LIBS) $(DEFS) -o $(TARGET_NOSB)
-
-# Rule to compile .cpp -> .o (no scoreboard)
-$(OBJ_DIR)/%_nosb.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
-
-# Rule to compile .cpp -> .o (scoreboard)
+# Compile rules for each category
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
-$(OBJ_DIR)/%.o: $(SB_DIR)/%.cpp | $(OBJ_DIR)
+
+$(OBJ_DIR)/scoreboard_%.o: $(SB_DIR)/%.cpp | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
 
-# Create the obj/ directory if it doesn't exist
+$(OBJ_DIR)/engine_%.o: $(ENG_DIR)/%.cpp | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
+
+# Create the obj directory if needed
 $(OBJ_DIR):
 	$(call MKDIR, $(OBJ_DIR))
 
-.PHONY: clean all offline
+.PHONY: clean all
 clean:
-	rm $(FORCE) $(OBJ_DIR)/*.o $(TARGET)*
+	rm $(FORCE) $(OBJ_DIR)/*.o $(TARGET)

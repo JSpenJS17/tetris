@@ -11,7 +11,8 @@ enum ROTATION_VALS {
     INVALID,
     VALID,
     TSPIN_MINI,
-    TSPIN
+    TSPIN,
+    NUM_ROTATION_VALS
 };
 
 enum ANGLES {
