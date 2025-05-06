@@ -1,92 +1,6 @@
 #include "menu.hpp"
 using namespace std;
 
-MenuItem::MenuItem(string item_text, MENUTYPE type) : item_text(item_text), item_type(type) {
-    number = 0;
-    text = "";
-    control_key = '\0';
-}
-
-string MenuItem::get_display_text() {
-    char buffer[MAX_ITEM_SIZE];
-    switch (item_type) {
-        case SELECT:
-            sprintf(buffer, "%s", item_text.c_str());
-            break;
-        case NUMBER:
-            sprintf(buffer, "%s %4d", item_text.c_str(), number);
-            break;
-        case STRING:
-            sprintf(buffer, "%s %s", item_text.c_str(), text.c_str());
-            break;
-        case CONTROL:
-            sprintf(buffer, "%s %4s", item_text.c_str(), keycode_to_string(control_key).c_str());
-            break;
-        case BOOLEAN:
-            sprintf(buffer, "%s %4s", item_text.c_str(), selected? " ON" : "OFF");
-    }
-    return buffer;
-}
-
-string MenuItem::get_item_text() {
-    return item_text;
-}
-
-MENUTYPE MenuItem::get_type() {
-    return item_type;
-}
-
-void MenuItem::incr_number() {
-    number = number + 1;
-    if (number > 100) {
-        number = 100;
-    }
-}
-
-void MenuItem::decr_number() {
-    number = number - 1;
-    if (number < -100) {
-        number = -100;
-    }
-}
-
-void MenuItem::set_string(string new_string) {
-    text = new_string;
-}
-
-void MenuItem::set_control(char c) {
-    control_key = c;
-}
-
-void MenuItem::set_selected() {
-    selected = !selected;
-}
-
-char MenuItem::get_control_key() {
-    return control_key;
-}
-
-int MenuItem::get_number() {
-    return number;
-}
-
-string MenuItem::get_string() {
-    return text;
-}
-
-bool MenuItem::get_selected() {
-    return selected;
-}
-
-void set_selected() {
-
-}
-Menu::Menu(){}
-
-void Menu::add_item(MenuItem option) {
-    items.push_back(option);
-}
-
 void Menu::display(const unsigned int offset) {
     if (items.size() == 0) {
         return;
@@ -238,11 +152,11 @@ void Menu::display(const unsigned int offset) {
             fflush(stdout);
         
         } else if (selection->get_type() == SELECT) {
-            selection->set_selected();
+            selection->toggle_bool();
             goto ret;
 
         } else if (selection->get_type() == BOOLEAN) {
-            selection->set_selected();
+            selection->toggle_bool();
             set_cursor_pos(offset + menu_idx, 0);
             cout << selection->get_display_text();
             fflush(stdout);

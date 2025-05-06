@@ -46,12 +46,24 @@ void main_menu() {
     cout << "    ESC to pause" << endl << endl;
 
     Menu main_menu = Menu();
-    main_menu.add_item(MenuItem("-Single Player", SELECT));
-    main_menu.add_item(MenuItem("-Multi Player ", SELECT));
-    main_menu.display(11);
-    gamedata.gametype = main_menu.items[0].get_selected() ? SINGLEPLAYER : MULTIPLAYER;
-    gamedata.starting_level = 0;
-    gamedata.use_ghost = true;
+    bool single_player = false;
+    bool multi_player = false;
+    main_menu.add_item(MenuItem("-Single Player", SELECT, &single_player));
+    main_menu.add_item(MenuItem("-Multi Player ", SELECT, &multi_player));
+    main_menu.display(11); // 11 lines down from top
+    gamedata.gametype = single_player ? SINGLEPLAYER : MULTIPLAYER;
+    
+    if (gamedata.gametype == SINGLEPLAYER) {
+        Menu sp_menu = Menu();
+        bool dummy = false;
+        sp_menu.add_item(MenuItem("Starting Level:", NUMBER, &gamedata.starting_level, 0, 20));
+        sp_menu.add_item(MenuItem("Ghost Piece    ", BOOLEAN, &gamedata.use_ghost));
+        sp_menu.add_item(MenuItem("Start", SELECT, &dummy));
+        sp_menu.display(14);
+
+    } else {
+        // multiplayer submenu
+    }
 }
 
 void clear_score_output(){

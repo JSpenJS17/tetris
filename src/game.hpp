@@ -31,7 +31,7 @@ typedef struct GameData {
     GameData(){}
     GAMETYPE gametype;
     int starting_level;
-    bool use_ghost;
+    bool use_ghost = true;
 } GameData;
 
 extern const uint width;
