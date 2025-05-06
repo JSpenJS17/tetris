@@ -77,7 +77,7 @@ uint Stacked_Blocks::clear_lines(){
     uint cleared_rows = 0;
 
     // loop through all the rows
-    for (row = 0; row < (int)height; row++){
+    for (row = -20; row < (int)height; row++){
         // loop through all the blocks
         for (int i = 0; i < (int)blocks.size(); i++){
             // if the block is in the current row

@@ -491,9 +491,21 @@ void singleplayer(){
             reset_piece = false;
 
             //game over check, if we can't spawn a new piece, ripperino
-            for (uint i = 0; i < piece.blocks.size(); i++){
-                if (stack.is_on(piece.blocks.at(i)))
+            for (auto& block : piece.blocks){
+                if (stack.is_on(block)) {
                     game_over = true;
+                }
+            }
+
+            // give em another chance by moving the piece up by 1 row
+            if (game_over) {
+                game_over = false;
+                for (auto& block : piece.blocks) {
+                    block.row -= 1;
+                    if (stack.is_on(block)) { // yeah they're dead
+                        game_over = true;
+                    }
+                }
             }
         }
 
