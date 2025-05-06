@@ -33,7 +33,8 @@ using namespace std;
 #define WHITE           15
 
 // Windows key codes
-const int ENTER = 13;
+const int ENTER = 13,
+          BACKSPACE = 8;
 
 #elif defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 // Linux specific includes
@@ -60,7 +61,8 @@ const int ENTER = 13;
 #define WHITE           97
 
 // Linux key codes
-const int ENTER = 10;
+const int ENTER = 10,
+          BACKSPACE = 127;
 #endif
 
 typedef struct POS {
@@ -70,7 +72,7 @@ typedef struct POS {
 
 // Linux and windows shared code
 const int SPACE = 32, ESC = 27,
-        UP = 65, LEFT = 68, DOWN = 66, RIGHT = 67;
+        UP = -1, DOWN = -2, LEFT = -3, RIGHT = -4;
 
 void init_engine();
 void close_engine();
@@ -143,5 +145,8 @@ class Board{
 };
 
 void draw_pixel(Pixel pix);
+
+string keycode_to_string(char keycode);
+bool is_alpha(char keycode);
 
 #endif

@@ -125,11 +125,11 @@ char wait_for_kb_input() {
         if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown) {
             WORD vkey = record.Event.KeyEvent.wVirtualKeyCode;
             switch (vkey) {
-                case VK_UP: return 'A';
-                case VK_DOWN: return 'B';
-                case VK_LEFT: return 'C';
-                case VK_RIGHT: return 'D';
-                case VK_ESCAPE: return 27;
+                case VK_UP: return UP;
+                case VK_DOWN: return DOWN;
+                case VK_LEFT: return LEFT;
+                case VK_RIGHT: return RIGHT;
+                case VK_ESCAPE: return ESC;
                 default: return record.Event.KeyEvent.uChar.AsciiChar;
             }
         }
@@ -153,11 +153,11 @@ char get_kb_input() {
         if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown) {
             WORD vkey = record.Event.KeyEvent.wVirtualKeyCode;
             switch (vkey) {
-                case VK_UP: return 'A';  // Match Linux-style arrow codes
-                case VK_DOWN: return 'B';
-                case VK_LEFT: return 'D';
-                case VK_RIGHT: return 'C';
-                case VK_ESCAPE: return 27;
+                case VK_UP: return UP;  // Match Linux-style arrow codes
+                case VK_DOWN: return DOWN;
+                case VK_LEFT: return LEFT;
+                case VK_RIGHT: return RIGHT;
+                case VK_ESCAPE: return ESC;
                 default: {
                     char ch = record.Event.KeyEvent.uChar.AsciiChar;
                     return ch ? ch : -1;
@@ -240,8 +240,7 @@ bool kbhit(){
 
 char wait_for_kb_input() {
     /* 
-     * Waits for user keyboard input and returns the character they input 
-     * returns 27 on ESC press, A/B/C/D on UP/DOWN/LEFT/RIGHT respectively
+     * Waits for user keyboard input and returns the character they input
      */
     char c;
     // blocking read
@@ -252,7 +251,14 @@ char wait_for_kb_input() {
         if (c == '[')
         {
             dummy = read(0, &c, 1);
-            return c;
+            switch (c) 
+            {
+                case 'A': return UP;
+                case 'B': return DOWN;
+                case 'C': return RIGHT;
+                case 'D': return LEFT;
+                default: return '?';
+            }
         }
         return '?'; // unknown esc sequence
     }
@@ -263,24 +269,10 @@ char get_kb_input(){
     /* 
      * Doesn't wait for user keyboard press, just asks if there was one and 
      * returns the key value it was. If there was no input, returns -1
-     * returns 27 on ESC press, A/B/C/D on UP/DOWN/LEFT/RIGHT respectively
      */
-    char c;
     if (kbhit())
     {
-        // blocking read
-        size_t dummy = read(0, &c, 1);
-        if (kbhit() && c == 27) // more in stdin and potential esc sequence
-        {
-            dummy = read(0, &c, 1);
-            if (c == '[')
-            {
-                dummy = read(0, &c, 1);
-                return c;
-            }
-            return '?'; // unknown esc sequence
-        }
-        return c;
+        return wait_for_kb_input();
     }
     return -1;
 }
@@ -411,3 +403,37 @@ Pixel Board::get_pix_at(unsigned const int row, unsigned const int col){
     return board.at(row).at(col);
 }
 
+string keycode_to_string(char keycode) {
+    if (is_alpha(keycode)) {
+        return {keycode, '\0'};
+    } else {
+        switch (keycode) {
+            case ENTER:
+                return "ENTER";
+            case BACKSPACE:
+                return "BACKSPACE";
+            case SPACE:
+                return "SPACE";
+            case ESC:
+                return "ESC";
+            case UP:
+                return "UP"; 
+            case DOWN:
+                return "DOWN";
+            case LEFT:
+                return "LEFT";
+            case RIGHT:
+                return "RIGHT";
+            case '\0':
+                return "NULL";
+            // case TAB:
+            //     return "TAB";
+            default:
+                return {keycode, '\0'};
+        }
+    }
+}
+
+bool is_alpha(char keycode) {
+    return keycode <= 122 && keycode >= 65;
+}

@@ -26,9 +26,12 @@ typedef enum GAMETYPE {
     NUMMODES
 } GAMETYPE;
 
-typedef struct GAMEDATA {
-    // todo
-} GAMEDATA;
+typedef struct GameData {
+    GameData(){}
+    GAMETYPE gametype;
+    int starting_level;
+    bool ghost;
+} GameData;
 
 extern const uint width;
 extern const uint height;
