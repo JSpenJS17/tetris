@@ -260,7 +260,7 @@ void multiplayer() {
             t_spin = 0;
 
             // add any sent garbage to the stack
-            stack.create_garbage(0);
+            stack.create_garbage(1);
             
             //change current piece to the previous next one
             piece = next_piece;

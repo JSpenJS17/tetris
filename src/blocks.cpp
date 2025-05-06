@@ -132,7 +132,7 @@ void Stacked_Blocks::create_garbage(int num_lines) {
         return;
     }
     // creates a number of garbage lines at the bottom of the stack
-    int hole_col = rand_int(width);
+    int hole_col = rand_int(width-1);
 
     // move up everyone else
     for (auto & block : blocks) {
@@ -147,10 +147,7 @@ void Stacked_Blocks::create_garbage(int num_lines) {
     for (int row = height-1; row > height - num_lines - 1; row--) {
         if (row > 0) {
             for (int col = 0; col < width; col++) {
-                if (col == hole_col) {
-                    game.write(row, col, bg);
-                }
-                else {
+                if (col != hole_col) {
                     blocks.push_back(Block(row, col, dead_pix));
                 }
             }
