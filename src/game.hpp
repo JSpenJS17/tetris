@@ -4,10 +4,13 @@
 #include <limits>
 #include <string.h>
 #include <csignal>
+#include <thread>
 #include "engine/engine.hpp"
 #include "tetromino.hpp"
 #include "blocks.hpp"
 #include "engine/menu.hpp"
+#include "engine/client_socket.hpp"
+#include "client.hpp"
 
 #ifdef SCOREBOARD
 #include "scoreboard/scoreboard.hpp"
@@ -45,5 +48,7 @@ extern GameData gamedata;
 extern GAMETYPE game_type;
 extern int line_total;
 extern int level;
+
+void reset_everything();
 
 #endif

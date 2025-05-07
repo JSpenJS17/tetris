@@ -1,21 +1,42 @@
 #include "multiplayer.hpp"
 
 void draw_games() {
-    // other_game = game; // substitute for thread getting their actual game data
-    // other_game.draw(0, false, width*3);
-    game.update_changes();
-    vector<PosPixel>* changes = game.get_changes();
-    game.draw_from_changes(changes);
-    // game.draw();
+    // other_game's changes vector is updated by listener() thread
+    // since we only read, race condition should be minimal
+    other_game.draw_from_changes(0, false, width*3);
+    game.draw();
     fflush(stdout);
 }
 
 int calculate_sent_lines() {
+    //todo 
     return 2;
 }
 
 void multiplayer() {
     clear_screen();
+
+    connect_to_server();
+    
+    thread sender_thread;
+    thread listener_thread;
+
+    // start client threads
+    try {
+        // Start sender and listener in separate threads
+        sender_thread = thread(sender);
+        listener_thread = thread(listener);
+
+        // continue normal execution with threads in background...
+    } catch (const exception& ex) {
+        // reset screen before we go
+        reset_everything();
+        
+        cerr << "Thread error: " << ex.what() << endl;
+        check_error("multiplayer() -- thread creation");
+        exit(1);
+    }
+
     Stacked_Blocks stack;
     Bag bag;
 
@@ -329,4 +350,10 @@ void multiplayer() {
         fflush(stdin); // flush stdin to prevent input lag
         delay(16 - total_time);
     }
+
+    stop_flag.store(true); // signal both threads to stop
+
+    // Join threads safely
+    // if (sender_thread.joinable()) sender_thread.join();
+    // if (listener_thread.joinable()) listener_thread.join();
 }

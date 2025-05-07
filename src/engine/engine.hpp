@@ -134,8 +134,7 @@ class Board{
 
         void draw(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
  
-        void draw_from_changes(vector<PosPixel>* changes, unsigned const int height_offset = 0, bool last_col_no_space = false, 
-                                unsigned const int width_offset = 0);
+        void draw_from_changes(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
 
         void update_changes();
 

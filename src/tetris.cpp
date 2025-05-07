@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include "singleplayer.hpp"
 #include "multiplayer.hpp"
+#include <exception>
 
 // externs
 const int width = 10;
@@ -14,6 +15,12 @@ long score = 0;
 GameData gamedata = GameData();
 int line_total = 0;
 int level = 0;
+
+void reset_everything() {
+    color(16, 16);
+    show_cursor(true);
+    close_engine();
+}
 
 void main_menu() {
     // modifies global gamedata based on menu inputs
@@ -70,12 +77,6 @@ void main_menu() {
     }
 }
 
-void reset_everything() {
-    color(16, 16);
-    show_cursor(true);
-    close_engine();
-}
-
 void sigint_handler(int dummy) {
     // act like it's a game over
     if (gamedata.gametype != MULTIPLAYER) {
@@ -85,7 +86,14 @@ void sigint_handler(int dummy) {
     }
 }
 
+void custom_terminate() {
+    std::cerr << "🔥 std::terminate called! No active exception." << std::endl;
+    std::abort(); // still crashes, but now you know why
+}
+
 int main(){
+    errno = 0;
+    std::set_terminate(custom_terminate);
     signal(SIGINT, sigint_handler);
     init_engine();
     clear_screen();

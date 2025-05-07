@@ -74,9 +74,14 @@ void ClientSocket::close_socket() {
 
 #elif defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 // ClientSocket class implementation
-ClientSocket::  ClientSocket() {
+ClientSocket::ClientSocket() {
     // Constructor
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket < 0) {
+        perror("socket creation failed");
+        std::cerr << "errno = " << errno << std::endl;
+        exit(1);
+    }
 }
 
 ClientSocket::~ClientSocket() {

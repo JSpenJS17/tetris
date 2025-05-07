@@ -1,7 +1,10 @@
 #include "client.hpp"
 
 string starting_string = "Hello from client";
-ClientSocket* clientSocket = new ClientSocket();
+
+// externs
+ClientSocket* client_socket = nullptr;
+atomic<bool> stop_flag(false);
 
 int check_error(string wherefrom)
 {
@@ -10,7 +13,8 @@ int check_error(string wherefrom)
         cout << "Crash! From " << wherefrom << endl;
         cout << "Error Number: " << errno << endl;
         cout << "Error: " << strerror(errno) << endl;
-        return 1;
+        reset_everything();
+        exit(errno);
     }
     return 0;
 }
@@ -18,9 +22,9 @@ int check_error(string wherefrom)
 int row = 0;
 
 void sender() {
-    clientSocket->send_msg(starting_string);
+    client_socket->send_msg(starting_string);
 
-    while (true) {
+    while (!stop_flag.load()) {
         vector<PosPixel>* changes = game.get_changes();
 
         size_t size = changes->size();
@@ -42,7 +46,7 @@ void sender() {
             buffer.push_back(p.face.val);
         }
 
-        clientSocket->send_msg(buffer.data(), buffer.size());
+        client_socket->send_msg(buffer.data(), buffer.size());
         check_error("sender()");
         delay(16);
     }
@@ -53,8 +57,8 @@ void listener() {
     size_t bytes_received;
     size_t wait_time = 0;
 
-    while (true) {
-        bytes_received = clientSocket->receive_msg(receive_buffer, sizeof(receive_buffer));
+    while (!stop_flag.load()) {
+        bytes_received = client_socket->receive_msg(receive_buffer, sizeof(receive_buffer));
         check_error("listener()");
 
         if (wait_time < starting_string.size()) {
@@ -87,4 +91,18 @@ void listener() {
         // Now `received` has all the PosPixels
         other_game.set_changes(&received);
     }
+}
+
+void connect_to_server() {
+    // specifying address
+    const char* server_ip = "131.186.7.78";
+    int port = 5000;
+
+    if (!client_socket) {
+        client_socket = new ClientSocket();
+    }
+
+    cout << "Connecting to server at " << server_ip << ":" << port << "..." << endl;
+    client_socket->connect_to(server_ip, port);
+    check_error("connect_to_server() -- connect_to");
 }
