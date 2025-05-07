@@ -5,6 +5,8 @@ string starting_string = "Hello from client";
 // externs
 ClientSocket* client_socket = nullptr;
 atomic<bool> stop_flag(false);
+mutex game_mutex;
+mutex other_game_mutex;
 
 int check_error(string wherefrom)
 {
@@ -25,17 +27,22 @@ void sender() {
     client_socket->send_msg(starting_string);
 
     while (!stop_flag.load()) {
-        vector<PosPixel>* changes = game.get_changes();
+        vector<PosPixel> changes;
 
-        size_t size = changes->size();
+        {
+            lock_guard<mutex> lock(game_mutex);  // Lock only while accessing shared game state
+            changes = game.get_changes();  // assuming this returns a pointer or a reference
+        }
 
         // Serialize
         std::vector<char> buffer;
 
+        size_t size = changes.size();
+
         // First: number of PosPixels
         buffer.push_back(static_cast<char>(size)); // 1 byte
 
-        for (const PosPixel& p : *changes) {
+        for (const PosPixel& p : changes) {
             // Serialize row and col
             buffer.insert(buffer.end(), (char*)&p.row, (char*)&p.row + sizeof(p.row));
             buffer.insert(buffer.end(), (char*)&p.col, (char*)&p.col + sizeof(p.col));
@@ -89,7 +96,10 @@ void listener() {
         }
 
         // Now `received` has all the PosPixels
-        other_game.set_changes(&received);
+        {
+            lock_guard<mutex> lock(other_game_mutex);
+            other_game.set_changes(&received);
+        }
     }
 }
 
@@ -102,7 +112,6 @@ void connect_to_server() {
         client_socket = new ClientSocket();
     }
 
-    cout << "Connecting to server at " << server_ip << ":" << port << "..." << endl;
     client_socket->connect_to(server_ip, port);
     check_error("connect_to_server() -- connect_to");
 }

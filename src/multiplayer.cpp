@@ -1,10 +1,20 @@
 #include "multiplayer.hpp"
 
+#define WITH_MUTEX(call) { \
+    lock_guard<mutex> lock(game_mutex); \
+    call; \
+}
+
 void draw_games() {
     // other_game's changes vector is updated by listener() thread
     // since we only read, race condition should be minimal
-    other_game.draw_from_changes(0, false, width*3);
-    game.draw();
+    {
+        lock_guard<mutex> lock(other_game_mutex);
+        other_game.draw_from_changes(0, false, width*3);
+    }
+
+    WITH_MUTEX(game.draw())
+
     fflush(stdout);
 }
 
@@ -17,6 +27,7 @@ void multiplayer() {
     clear_screen();
 
     connect_to_server();
+    other_game.draw(0, false, width*3);
     
     thread sender_thread;
     thread listener_thread;
@@ -42,7 +53,7 @@ void multiplayer() {
 
     char key = -1;
     Tetromino piece = bag.get_piece();
-    piece.write();
+    WITH_MUTEX(piece.write())
 
     set_cursor_pos(0, width*2+1);
     color(GRAY, WHITE);
@@ -86,7 +97,7 @@ void multiplayer() {
         // draw initial ghost
         ghost_piece = piece;
         ghost_piece.set_ghost_pos(stack);
-        ghost_piece.write();
+        WITH_MUTEX(ghost_piece.write())
     }
 
 
@@ -102,28 +113,28 @@ void multiplayer() {
 
         switch (key){
             case LEFT:
-                successful_move = piece.move_horizontal(true, stack);
+                WITH_MUTEX(successful_move = piece.move_horizontal(true, stack))
                 made_move = true;
                 break;
 
             case RIGHT:
-                successful_move = piece.move_horizontal(false, stack);
+                WITH_MUTEX(successful_move = piece.move_horizontal(false, stack))
                 made_move = true;
                 break;
 
             case DOWN:
-                hit_bottom = piece.move_down(stack);
+                WITH_MUTEX(hit_bottom = piece.move_down(stack))
                 if (!hit_bottom)
                     score += 1;
                 break;
 
             case UP:
-                successful_move = piece.rotate(true, stack);
+                WITH_MUTEX(successful_move = piece.rotate(true, stack))
                 made_move = true;
                 break;
 
             case 'z':
-                successful_move = piece.rotate(false, stack);
+                WITH_MUTEX(successful_move = piece.rotate(false, stack));
                 made_move = true;
                 break;
 
@@ -132,12 +143,12 @@ void multiplayer() {
                 if (!has_held){
                     lock_delay = lock_delay_reset;
                     //erase the current piece
-                    piece.write(ERASE);
+                    WITH_MUTEX(piece.write(ERASE));
 
                     // erase the current ghost if we're using ghost
                     if (gamedata.use_ghost) {
                         // remove old ghost
-                        ghost_piece.write(ERASE);
+                        WITH_MUTEX(ghost_piece.write(ERASE))
                     }
 
                     //if held_piece exists
@@ -173,7 +184,7 @@ void multiplayer() {
                     }
 
                     //whatever piece is, write it
-                    piece.write();
+                    WITH_MUTEX(piece.write());
                     
                     //clear the held piece slot
                     for (int row = 7; row < 9; row++){
@@ -224,7 +235,7 @@ void multiplayer() {
         if (frame_counter * gravity >= 1){
             int moves = frame_counter * gravity;
             for (int i = 0; i < moves; i++){
-                hit_bottom = piece.move_down(stack);
+                WITH_MUTEX(hit_bottom = piece.move_down(stack));
                 if (hard_dropping)
                     score += 2;
                 if (hit_bottom)
@@ -248,15 +259,15 @@ void multiplayer() {
 
         if (gamedata.use_ghost) {
             // if the move was a success, remove the old ghost
-            ghost_piece.write(ERASE);
+            WITH_MUTEX(ghost_piece.write(ERASE))
             // hacky fix to make sure the ghost doesn't overwrite the piece
-            piece.write();
+            WITH_MUTEX(piece.write())
             // update the ghost
             ghost_piece = piece;
             // update the ghost position
             ghost_piece.set_ghost_pos(stack);
             // draw new ghost
-            ghost_piece.write();
+            WITH_MUTEX(ghost_piece.write())
         }
 
         // reset the made_move flag
@@ -280,7 +291,7 @@ void multiplayer() {
             t_spin = 0;
 
             // add any sent garbage to the stack
-            stack.create_garbage(1);
+            WITH_MUTEX(stack.create_garbage(0))
             
             //change current piece to the previous next one
             piece = next_piece;
@@ -288,7 +299,7 @@ void multiplayer() {
             // This prevents some dumb graphical bug
             
             // write the stack to make sure we didn't miss anything
-            stack.write();
+            WITH_MUTEX(stack.write())
 
             //get a new next piece
             next_piece = bag.get_piece();
@@ -339,8 +350,8 @@ void multiplayer() {
         }
 
         /* UPDATE DISPLAY */
-        piece.write();
-        stack.write();
+        WITH_MUTEX(piece.write());
+        WITH_MUTEX(stack.write());
 
         draw_games();
 

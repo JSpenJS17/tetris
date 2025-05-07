@@ -392,6 +392,7 @@ void Board::draw_from_changes(unsigned const int height_offset/* = 0*/, bool las
     /* Guaranteed to only read from changes vector */
     for (auto& change : changes) {
         set_cursor_pos(change.row + height_offset, change.col*2 + width_offset * 2);
+        board.at(change.row).at(change.col) = change.face;
         if (last_col_no_space) {
             print_in_bounds(change.face, change.col);
         }

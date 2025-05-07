@@ -2,10 +2,13 @@
 #define CLIENT_HPP
 #include "game.hpp"
 #include <atomic>
+#include <mutex>
 
 using namespace std;
 #define BUFFER_SIZE 1024
 
+extern mutex game_mutex;
+extern mutex other_game_mutex;
 extern ClientSocket* client_socket;
 extern atomic<bool> stop_flag;
 int check_error(string wherefrom);

@@ -142,7 +142,7 @@ class Board{
 
         Pixel get_pix_at(unsigned const int row, unsigned const int col);
 
-        vector<PosPixel>* get_changes() { return &changes; } // changes updated in draw()
+        vector<PosPixel> get_changes() { return changes; }
 
         void set_changes(vector<PosPixel>* new_changes) { changes = *new_changes; }
 
