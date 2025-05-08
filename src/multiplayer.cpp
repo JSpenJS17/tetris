@@ -27,7 +27,6 @@ void multiplayer() {
     clear_screen();
 
     connect_to_server();
-    other_game.draw(0, false, width*3);
     
     thread sender_thread;
     thread listener_thread;
@@ -47,6 +46,14 @@ void multiplayer() {
         check_error("multiplayer() -- thread creation");
         exit(1);
     }
+
+
+    cout << "Waiting for other player to connect..." << endl;
+    while (!received_anything.load()) {
+        // wait for the sender to send the first message
+        delay(100);
+    }
+    clear_screen();
 
     Stacked_Blocks stack;
     Bag bag;

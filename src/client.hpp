@@ -11,6 +11,7 @@ extern mutex game_mutex;
 extern mutex other_game_mutex;
 extern ClientSocket* client_socket;
 extern atomic<bool> stop_flag;
+extern atomic<bool> received_anything;
 int check_error(string wherefrom);
 void sender();
 void listener();

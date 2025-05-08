@@ -51,15 +51,13 @@ void sender() {
         // Now serialize each Pixel
         for (const auto& row : our_board) {
             for (const Pixel& pixel : row) {
-                buffer.push_back(pixel.bgc);
-                buffer.push_back(pixel.fgc);
-                buffer.push_back(pixel.val);
+                buffer.push_back(pixel.bgc); // since bgc and fgc are the same just send one
             }
         }
 
         client_socket->send_msg(buffer.data(), buffer.size());
         check_error("sender()");
-        delay(250);
+        delay(100);
     }
 }
 
@@ -97,13 +95,13 @@ void listener() {
 
         for (uint32_t i = 0; i < rows; ++i) {
             for (uint32_t j = 0; j < cols; ++j) {
-                if (offset + 3 > bytes_received) break;
+                if (offset > bytes_received) break;
 
                 char bgc, fgc, val;
 
                 bgc = receive_buffer[offset++];
-                fgc = receive_buffer[offset++];
-                val = receive_buffer[offset++];
+                fgc = bgc;
+                val = '-';
 
                 board[i][j] = Pixel(val, bgc, fgc);
             }
