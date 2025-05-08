@@ -1,7 +1,10 @@
-Client socket import
-Server creation
-Prototype game between two terminals!!
 Better main menu
     - Set name
     - Controls
     - Store settings, etc.
+
+Packet types? Packet for # garbage lines, packet for boards, packet for other info, etc?
+Sending only changes for increased efficiency and lower sender() delay
+Better error handling on client and server side (crashing after top out)
+Calculate # sent lines
+    - Display for this
