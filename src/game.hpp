@@ -5,6 +5,8 @@
 #include <string.h>
 #include <csignal>
 #include <thread>
+#include <atomic>
+#include <mutex>
 #include "engine/engine.hpp"
 #include "tetromino.hpp"
 #include "blocks.hpp"
@@ -48,7 +50,10 @@ extern GameData gamedata;
 extern GAMETYPE game_type;
 extern int line_total;
 extern int level;
+extern atomic<int> outgoing_garbage;
+extern atomic<int> received_garbage;
 
 void reset_everything();
+void clear_score_output();
 
 #endif

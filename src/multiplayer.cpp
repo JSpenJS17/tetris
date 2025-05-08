@@ -5,6 +5,10 @@
     call; \
 }
 
+int combo = 0; // todo
+atomic<int> outgoing_garbage(0);
+atomic<int> received_garbage(0);
+
 void draw_games() {
     // other_game's changes vector is updated by listener() thread
     // since we only read, race condition should be minimal
@@ -18,10 +22,147 @@ void draw_games() {
     fflush(stdout);
 }
 
-int calculate_sent_lines() {
-    //todo 
-    return 2;
+/*
+Attack and combo table:
+
+    Attack Type Lines Sent Combo # Lines sent
+    0 lines 	        0 		0 	       0
+    1 lines (single) 	0 		1 	       0
+    2 lines (double) 	1 		2 	       1
+    3 lines (triple) 	2 		3 	       1
+    4 lines 	        4 		4 	       1
+    T-spin Double 	    4 		5 	       2
+    T-spin Triple 	    6 		6 	       2
+    T-spin Single 	    2 		7 	       3
+    T-spin Mini Single 	0 		8 	       3
+    Perfect Clear 	    10 		9 	       4
+    Back-to-Back 	    +1 		10 	       4
+                                11 	       4
+                                12+        5
+
+*/
+
+int calulate_sent_lines(const uint lines_cleared,
+                     const Tetromino& piece, 
+                     const Stacked_Blocks& stack, 
+                     const uint level, string* prev_clear,
+                     const int t_spin_type){
+    uint score = 0;
+    int lines_sent = 0;
+    uint row_index = 13;
+    string cur_clear = "break b2b";
+
+    clear_score_output();
+
+    set_cursor_pos(row_index++, width*2 + 1);
+    switch (lines_cleared){
+        case 0:
+            if (t_spin_type == TSPIN_MINI){
+                cur_clear = "don't break b2b";
+                cout << "MINI T-SPIN";
+                score += 100 * level;
+            }
+            else if (t_spin_type == TSPIN){
+                cur_clear = "don't break b2b";
+                cout << "T-SPIN";
+                score += 400 * level;
+            }
+            else {
+                score = 0;
+            }
+        break;
+
+        case 1:
+            if (t_spin_type == TSPIN_MINI){
+                cur_clear = "b2b";
+                cout << "MINI T-SPIN";
+                set_cursor_pos(row_index++, width*2 + 1);
+                score += 200 * level;
+            }
+            else if (t_spin_type == TSPIN){
+                cur_clear = "b2b";
+                cout << "T-SPIN";
+                set_cursor_pos(row_index++, width*2 + 1);
+                score += 800 * level;
+                lines_sent = 2;
+            }
+            else {
+                cur_clear = "break b2b";
+                score += 100 * level;
+            }
+            cout << "SINGLE";
+        break;
+
+        case 2:
+            if (t_spin_type == TSPIN){
+                cur_clear = "b2b";
+                cout << "T-SPIN";
+                set_cursor_pos(row_index++, width*2 + 1);
+                score += 1200 * level;
+                lines_sent = 4;
+            }
+            else{
+                cur_clear = "break b2b";
+                score += 300 * level; 
+                lines_sent = 1;
+            }
+            cout << "DOUBLE";
+        break;
+
+        case 3:
+            if (t_spin_type == TSPIN){
+                cur_clear = "b2b";
+                cout << "T-SPIN";
+                set_cursor_pos(row_index++, width*2 + 1);
+                score += 1600 * level;
+                lines_sent = 6;
+            }
+            else{
+                cur_clear = "break b2b";
+                score += 500 * level;
+                lines_sent = 2;
+            }
+            cout << "TRIPLE";
+        break;
+
+        case 4:
+            cur_clear = "b2b";
+            cout << "TETRIS";
+            score += 800 * level;
+            lines_sent = 4;
+        break;
+    }
+
+    // override with perfect clear 10 lines
+    if (stack.is_empty()){
+        set_cursor_pos(row_index++, width*2 + 1);
+        score += 1250 * level;
+        cout << "PERFECT CLEAR";
+        lines_sent = 10;
+    }
+
+    // add on for back-to-back
+    if (score > 0){
+        if (*prev_clear == "b2b" && cur_clear == "b2b"){
+            set_cursor_pos(row_index++, width*2 + 1);
+            score *= 1.5;
+            cout << "BACK-TO-BACK";
+        }
+
+        if (cur_clear != "don't break b2b") {
+            *prev_clear = cur_clear;
+        }
+
+        set_cursor_pos(row_index++, width*2 + 1);
+        cout << score;
+    }
+
+    // add on for combo (todo)
+
+    color(16, 16);
+    return lines_sent;
 }
+
 
 void multiplayer() {
     clear_screen();
@@ -293,12 +434,16 @@ void multiplayer() {
 
             //clear lines and store how many were cleared
             current_lines_cleared = stack.clear_lines();
-            sent_lines = current_lines_cleared; // temporary
+            //calculate how many lines are to be sent
+            sent_lines = calulate_sent_lines(current_lines_cleared, piece, stack, level, prev_clear_ptr, t_spin);
+            outgoing_garbage.store(sent_lines);
+
             line_total += current_lines_cleared;
             t_spin = 0;
 
-            // add any sent garbage to the stack
-            WITH_MUTEX(stack.create_garbage(0))
+            // add any sent garbage to the stack (loaded by listener thread)
+            WITH_MUTEX(stack.create_garbage(received_garbage.load()));
+            received_garbage.store(0);
             
             //change current piece to the previous next one
             piece = next_piece;

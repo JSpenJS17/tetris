@@ -1,8 +1,6 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #include "game.hpp"
-#include <atomic>
-#include <mutex>
 
 using namespace std;
 #define BUFFER_SIZE 1024

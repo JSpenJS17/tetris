@@ -47,7 +47,9 @@ void sender() {
 
         buffer.insert(buffer.end(), (char*)&rows, (char*)&rows + sizeof(rows));
         buffer.insert(buffer.end(), (char*)&cols, (char*)&cols + sizeof(cols));
-
+        int garbage = outgoing_garbage.load();
+        buffer.insert(buffer.end(), (char*)&garbage, (char*)&garbage + sizeof(garbage));
+        
         // Now serialize each Pixel
         for (const auto& row : our_board) {
             for (const Pixel& pixel : row) {
@@ -82,11 +84,14 @@ void listener() {
 
         size_t offset = 0;
         uint32_t rows, cols;
+        int garbage = 0;
 
         if (bytes_received < sizeof(rows) + sizeof(cols)) continue; // not enough data
 
         memcpy(&rows, receive_buffer + offset, sizeof(rows)); offset += sizeof(rows);
         memcpy(&cols, receive_buffer + offset, sizeof(cols)); offset += sizeof(cols);
+        memcpy(&garbage, receive_buffer + offset, sizeof(garbage)); offset += sizeof(garbage);
+        received_garbage.store(garbage);
 
         vector<vector<Pixel>> board = {};
         for (uint32_t i = 0; i < rows; ++i) {
