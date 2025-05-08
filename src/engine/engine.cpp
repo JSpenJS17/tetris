@@ -289,8 +289,7 @@ void draw_pixel(Pixel pix){
     color(16, 16);
 }
 
-Pixel::Pixel(char value, unsigned short bg_color = 16,
-      unsigned short fg_color = 16){
+Pixel::Pixel(char value, char bg_color = 16, char fg_color = 16){
     val = value;
     bgc = bg_color;
     fgc = fg_color;
@@ -345,8 +344,6 @@ void Board::write(const unsigned int row, const unsigned int col){
 
 void Board::draw(unsigned const int height_offset/*= 0*/, bool last_col_no_space/*= false*/, unsigned const int width_offset/*= 0*/){
     /* draws the updated parts of the board */
-    changes.clear();
-
     //loop through game board
     for (unsigned int row = 0; row < hei; row++){
         for (unsigned int col = 0; col < len; col++){
@@ -354,7 +351,6 @@ void Board::draw(unsigned const int height_offset/*= 0*/, bool last_col_no_space
             if (board.at(row).at(col) != oldboard.at(row).at(col)){
                 //set the cursor pos to the right spot
                 set_cursor_pos(row + height_offset, col*2 + width_offset * 2);
-                changes.push_back(PosPixel(row, col, board.at(row).at(col)));
                 //draw the pixel
                 if (last_col_no_space) {
                     print_in_bounds(board.at(row).at(col), col);
@@ -369,37 +365,6 @@ void Board::draw(unsigned const int height_offset/*= 0*/, bool last_col_no_space
     oldboard = board;
     //reset the color
     color(16, 16);
-}
-
-void Board::update_changes() { 
-    /* Updates changes vector without drawing */
-    changes.clear();
-    for (unsigned int row = 0; row < hei; row++){
-        for (unsigned int col = 0; col < len; col++){
-            //if the current board doesn't match the old board at the row, col
-            if (board.at(row).at(col) != oldboard.at(row).at(col)){
-                //set the cursor pos to the right spot
-                changes.push_back(PosPixel(row, col, board.at(row).at(col)));
-            }
-        }
-    }
-    oldboard = board;
-    color(16, 16);
-}
-
-void Board::draw_from_changes(unsigned const int height_offset/* = 0*/, bool last_col_no_space/* = false*/, unsigned const int width_offset/* = 0*/) {
-    /* draws the changes in our changes vector */
-    /* Guaranteed to only read from changes vector */
-    for (auto& change : changes) {
-        set_cursor_pos(change.row + height_offset, change.col*2 + width_offset * 2);
-        board.at(change.row).at(change.col) = change.face;
-        if (last_col_no_space) {
-            print_in_bounds(change.face, change.col);
-        }
-        else {
-            print_pixel(change.face);
-        }
-    }
 }
 
 void Board::clear_board(const bool redraw_whole_board){

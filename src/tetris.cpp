@@ -87,6 +87,8 @@ void sigint_handler(int dummy) {
 }
 
 void custom_terminate() {
+    reset_everything();
+    clear_screen();
     std::cerr << "🔥 std::terminate called! No active exception." << std::endl;
     std::abort(); // still crashes, but now you know why
 }

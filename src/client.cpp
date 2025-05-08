@@ -1,21 +1,22 @@
 #include "client.hpp"
 
-string starting_string = "Hello from client";
-
 // externs
 ClientSocket* client_socket = nullptr;
 atomic<bool> stop_flag(false);
+atomic<bool> received_anything(false);
 mutex game_mutex;
 mutex other_game_mutex;
+string starting_string = "Hello from client";
 
 int check_error(string wherefrom)
 {
     if (errno) {
         fflush(stdout);
+        reset_everything();
+        clear_screen();
         cout << "Crash! From " << wherefrom << endl;
         cout << "Error Number: " << errno << endl;
         cout << "Error: " << strerror(errno) << endl;
-        reset_everything();
         exit(errno);
     }
     return 0;
@@ -25,83 +26,96 @@ int row = 0;
 
 void sender() {
     client_socket->send_msg(starting_string);
+    while (!received_anything.load()) {
+        delay(100);
+    }
 
+    // wait for the listener to receive the first message
     while (!stop_flag.load()) {
-        vector<PosPixel> changes;
+        vector<vector<Pixel>> our_board;
 
         {
-            lock_guard<mutex> lock(game_mutex);  // Lock only while accessing shared game state
-            changes = game.get_changes();  // assuming this returns a pointer or a reference
+            lock_guard<mutex> lock(game_mutex);
+            our_board = game.get_board();  // Make a copy while locked
         }
 
-        // Serialize
         std::vector<char> buffer;
 
-        size_t size = changes.size();
+        // First: encode number of rows and columns (assumes uniform row sizes)
+        uint32_t rows = our_board.size();
+        uint32_t cols = rows ? our_board[0].size() : 0;
 
-        // First: number of PosPixels
-        buffer.push_back(static_cast<char>(size)); // 1 byte
+        buffer.insert(buffer.end(), (char*)&rows, (char*)&rows + sizeof(rows));
+        buffer.insert(buffer.end(), (char*)&cols, (char*)&cols + sizeof(cols));
 
-        for (const PosPixel& p : changes) {
-            // Serialize row and col
-            buffer.insert(buffer.end(), (char*)&p.row, (char*)&p.row + sizeof(p.row));
-            buffer.insert(buffer.end(), (char*)&p.col, (char*)&p.col + sizeof(p.col));
-
-            // Serialize face
-            buffer.insert(buffer.end(), (char*)&p.face.bgc, (char*)&p.face.bgc + sizeof(p.face.bgc));
-            buffer.insert(buffer.end(), (char*)&p.face.fgc, (char*)&p.face.fgc + sizeof(p.face.fgc));
-            buffer.push_back(p.face.val);
+        // Now serialize each Pixel
+        for (const auto& row : our_board) {
+            for (const Pixel& pixel : row) {
+                buffer.push_back(pixel.bgc);
+                buffer.push_back(pixel.fgc);
+                buffer.push_back(pixel.val);
+            }
         }
 
         client_socket->send_msg(buffer.data(), buffer.size());
         check_error("sender()");
-        delay(16);
+        delay(250);
     }
 }
+
 
 void listener() {
     char receive_buffer[BUFFER_SIZE];
-    size_t bytes_received;
     size_t wait_time = 0;
 
-    while (!stop_flag.load()) {
-        bytes_received = client_socket->receive_msg(receive_buffer, sizeof(receive_buffer));
+    // wait for the sender to send the first message
+    while (!received_anything.load()) {
+        size_t bytes_received = client_socket->receive_msg(receive_buffer, sizeof(receive_buffer));
         check_error("listener()");
 
-        if (wait_time < starting_string.size()) {
-            wait_time += bytes_received;
-            continue;
+        if (bytes_received > 0) {
+            received_anything.store(true);
+        }
+    }
+
+    while (!stop_flag.load()) {
+        size_t bytes_received = client_socket->receive_msg(receive_buffer, sizeof(receive_buffer));
+        check_error("listener()");
+
+        size_t offset = 0;
+        uint32_t rows, cols;
+
+        if (bytes_received < sizeof(rows) + sizeof(cols)) continue; // not enough data
+
+        memcpy(&rows, receive_buffer + offset, sizeof(rows)); offset += sizeof(rows);
+        memcpy(&cols, receive_buffer + offset, sizeof(cols)); offset += sizeof(cols);
+
+        vector<vector<Pixel>> board = {};
+        for (uint32_t i = 0; i < rows; ++i) {
+            board.push_back(vector<Pixel>(cols));
         }
 
-        // First byte = number of PosPixels
-        uint8_t num_pixels = receive_buffer[0];
+        for (uint32_t i = 0; i < rows; ++i) {
+            for (uint32_t j = 0; j < cols; ++j) {
+                if (offset + 3 > bytes_received) break;
 
-        vector<PosPixel> received;
-        size_t offset = 1;
+                char bgc, fgc, val;
 
-        for (int i = 0; i < num_pixels; ++i) {
-            if (offset + 13 > bytes_received) break; // error check: 13 bytes per PosPixel
+                bgc = receive_buffer[offset++];
+                fgc = receive_buffer[offset++];
+                val = receive_buffer[offset++];
 
-            unsigned int row, col;
-            unsigned short bgc, fgc;
-            char val;
-
-            memcpy(&row, receive_buffer + offset, sizeof(row)); offset += sizeof(row);
-            memcpy(&col, receive_buffer + offset, sizeof(col)); offset += sizeof(col);
-            memcpy(&bgc, receive_buffer + offset, sizeof(bgc)); offset += sizeof(bgc);
-            memcpy(&fgc, receive_buffer + offset, sizeof(fgc)); offset += sizeof(fgc);
-            val = receive_buffer[offset++];
-
-            received.emplace_back(row, col, Pixel(val, bgc, fgc));
+                board[i][j] = Pixel(val, bgc, fgc);
+            }
         }
 
-        // Now `received` has all the PosPixels
         {
             lock_guard<mutex> lock(other_game_mutex);
-            other_game.set_changes(&received);
+            other_game.set_board(board);
         }
     }
 }
+
 
 void connect_to_server() {
     // specifying address

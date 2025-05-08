@@ -10,7 +10,7 @@ void draw_games() {
     // since we only read, race condition should be minimal
     {
         lock_guard<mutex> lock(other_game_mutex);
-        other_game.draw_from_changes(0, false, width*3);
+        other_game.draw(0, false, width*3);
     }
 
     WITH_MUTEX(game.draw())

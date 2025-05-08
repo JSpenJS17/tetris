@@ -99,11 +99,9 @@ char get_kb_input();
 void set_cursor_pos(unsigned const int row, unsigned const int col);
 
 struct Pixel{
-    unsigned short bgc;
-    unsigned short fgc;
-    char val;
+    char bgc, fgc, val;
 
-    Pixel(char value, unsigned short bg_color, unsigned short fg_color);
+    Pixel(char value, char bg_color, char fg_color);
 
     Pixel();
 
@@ -134,17 +132,12 @@ class Board{
 
         void draw(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
  
-        void draw_from_changes(unsigned const int height_offset = 0, bool last_col_no_space = false, unsigned const int width_offset = 0);
-
-        void update_changes();
-
         void clear_board(const bool redraw_whole_board);
 
         Pixel get_pix_at(unsigned const int row, unsigned const int col);
 
-        vector<PosPixel> get_changes() { return changes; }
-
-        void set_changes(vector<PosPixel>* new_changes) { changes = *new_changes; }
+        vector<vector<Pixel>> get_board() { return board; }
+        void set_board(vector<vector<Pixel>> new_board) { board = new_board; }
 
     private:
         Pixel filler;
@@ -153,7 +146,6 @@ class Board{
         vector<vector<Pixel> > freshboard;
         vector<vector<Pixel> > oldboard;
         vector<vector<Pixel> > board;
-        vector<PosPixel> changes;
         
         void print_in_bounds(Pixel pix, unsigned const int col);
 
