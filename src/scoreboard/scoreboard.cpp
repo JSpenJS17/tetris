@@ -30,10 +30,10 @@ TopScore* get_scores(const char* name, int score) {
         /* Set up the write function and buffer */
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
-        curl_easy_setopt(curl, CURLOPT_URL, "http://piercelane2.ddns.net:5001/");
+        curl_easy_setopt(curl, CURLOPT_URL, "http://piercelane.ddns.net:5001/");
         
         /*
-         * Send her to the server (http post using curl.h to piercelane2.ddns.net) if she was the top score
+         * Send her to the server (http post using curl.h to piercelane.ddns.net) if she was the top score
          *
          * Create our score data
          * JSON Format:
