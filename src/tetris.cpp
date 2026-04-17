@@ -987,29 +987,6 @@ void sigint_handler(int dummy) {
     // should also clear screen
     clear_screen();
 
-    // this will double submit on game loss, but that's lowkey fine
-    #ifdef SCOREBOARD
-        TopScore* top_ten = get_scores(whoami(), score);
-        if (top_ten) 
-        {
-            printf("\nTop Ten Global Scores:\n");
-            printf("     Score Name\n");
-            for (int i = 0; i < num_topscores; i++)
-            {
-                printf("%2d %7d %s\n", i + 1, top_ten[i].score, top_ten[i].name);
-            }
-            if (placement != -1)
-            {
-                printf("\nYou placed number %d globally.\n", placement);
-            }
-        } 
-        else 
-        {
-            printf("Failed to grab global scores.\n");
-        }
-        free(top_ten);
-    #endif
-
     // be sure to reset the cursor to being visible if it wasn't
     show_cursor(true);
     close_engine();

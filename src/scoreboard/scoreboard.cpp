@@ -46,8 +46,11 @@ TopScore* get_scores(const char* name, int score) {
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 1L);
 
         /* Do the deed */
+        printf( "Fetching global leaderboard...\n" );
         res = curl_easy_perform(curl);
 
         ret = parse(response.data);
