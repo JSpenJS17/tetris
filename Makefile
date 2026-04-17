@@ -37,13 +37,13 @@ DEFS := -DSCOREBOARD
 
 ifeq ($(OS_TYPE), Windows)
 	MKDIR = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
-	LIBS += -I./include -L./lib
-	FORCE := -Force
+	CFLAGS += -static-libgcc -static-libstdc++
+	LDFLAGS := -static-libgcc -static-libstdc++
+	LIBS += -I./include -L./lib -lcurl -lws2_32 -lcrypt32
 	TARGET := bin/windows/tetris
 	TARGET_NOSB := bin/windows/tetris_offline
 else
 	MKDIR = mkdir -p $(1)
-	FORCE := -f
 	TARGET := tetris
 	TARGET_NOSB := tetris_offline
 endif
@@ -58,10 +58,10 @@ offline: $(TARGET_NOSB)
 
 # Final executable target
 $(TARGET): $(ALL_HDR) $(OBJ)
-	$(CC) $(OBJ) $(LIBS) $(DEFS) -o $(TARGET)
+	$(CC) $(OBJ) $(LDFLAGS) $(LIBS) $(DEFS) -o $(TARGET)
 
 $(TARGET_NOSB): $(HDR) $(OBJ_NOSB)
-	$(CC) $(OBJ_NOSB) $(LIBS) $(DEFS) -o $(TARGET_NOSB)
+	$(CC) $(OBJ_NOSB) $(LDFLAGS) $(LIBS) $(DEFS) -o $(TARGET_NOSB)
 
 # Rule to compile .cpp -> .o (no scoreboard)
 $(OBJ_DIR)/%_nosb.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
@@ -79,4 +79,4 @@ $(OBJ_DIR):
 
 .PHONY: clean all offline
 clean:
-	rm $(FORCE) $(OBJ_DIR)/*.o $(TARGET)*
+	rm $(OBJ_DIR)/*.o $(TARGET)*
