@@ -73,10 +73,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SB_DIR)/%.cpp | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(LIBS) $(DEFS) -c $< -o $@
 
-# Create the obj/ directory if it doesn't exist
-$(OBJ_DIR):
-	$(call MKDIR, $(OBJ_DIR))
-
 .PHONY: clean all offline
 clean:
 	rm $(OBJ_DIR)/*.o $(TARGET)*
